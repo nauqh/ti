@@ -79,4 +79,5 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
             attachments=message.attachments
         )
     else:
-        print("Thread does not belong to the question center category.")
+        print(
+            f"Thread {thread.name} does not belong to the question center category.")
