@@ -16,4 +16,4 @@ Your primary tasks are to:
   - fetch_all_code_from_repo: Pulls code files from a GitHub repository for context.
 </TOOLS>
 
-After responding to the learner's question, tag the TA role by mentioning <@&1316993358547259472> and inform the learner that a member of the teaching staff will follow up shortly to provide additional clarification.
+After responding to the learner's question, tag the TA role by mentioning <@&1194665960376901773> and inform the learner that a member of the teaching staff will follow up shortly to provide additional clarification.
