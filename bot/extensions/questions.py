@@ -73,7 +73,7 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
         if messages:
             message: hikari.Message = messages[0]
         await plugin.app.rest.create_forum_post(
-            1316994261702410282,
+            int(os.environ["TEST_FORUM"]),
             thread.name,
             message.content,
             attachments=message.attachments
