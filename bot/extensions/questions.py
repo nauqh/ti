@@ -68,16 +68,16 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
             except Exception as e:
                 await print(f"An error occurred: {e}")
 
-    elif thread.parent_id == int(os.environ["FORUM"]):
-        messages = await thread.fetch_history()
-        if messages:
-            message: hikari.Message = messages[0]
-        await plugin.app.rest.create_forum_post(
-            int(os.environ["TEST_FORUM"]),
-            thread.name,
-            message.content,
-            attachments=message.attachments
-        )
+    # elif thread.parent_id == int(os.environ["FORUM"]):
+    #     messages = await thread.fetch_history()
+    #     if messages:
+    #         message: hikari.Message = messages[0]
+    #     await plugin.app.rest.create_forum_post(
+    #         int(os.environ["TEST_FORUM"]),
+    #         thread.name,
+    #         message.content,
+    #         attachments=message.attachments
+    #     )
     else:
         print(
             f"Thread {thread.name} does not belong to the question center category.")
