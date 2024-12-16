@@ -286,13 +286,13 @@ class DataScienceAssistant:
                 tool_outputs=tool_outputs
             )
 
-    def create_and_run_thread(self, thread, assistant_id):
+    def create_and_run_thread(self, thread):
         """
         Creates a run for the thread, processes required actions, and retrieves the response.
         """
         run = self.client.beta.threads.runs.create(
             thread_id=thread.id,
-            assistant_id=assistant_id
+            assistant_id=self.assistant.id
         )
 
         while True:
@@ -376,8 +376,7 @@ if __name__ == "__main__":
     )
     thread = bot.create_thread(
         "What does my code do? https://github.com/nauqh/csautograde")
-    messages = bot.create_and_run_thread(
-        thread, bot.assistant.id)
+    messages = bot.create_and_run_thread(thread)
     response, citations = bot.extract_response(messages)
     print(response)
     if citations:

@@ -53,10 +53,7 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
                     file_paths=attachments
                 )
 
-                messages = bot.create_and_run_thread(
-                    thread=ds_thread,
-                    assistant_id=bot.assistant.id
-                )
+                messages = bot.create_and_run_thread(thread=ds_thread)
                 response, citations = bot.extract_response(messages)
                 await thread.send(response)
 
