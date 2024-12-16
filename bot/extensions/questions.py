@@ -59,22 +59,37 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
 
                 # Include citations for debugging
                 if citations:
-                    citation_message = f"Referenced files: {', '.join(citations)}"
-                    logger.info(citation_message)
+                    logger.info(f"Referenced files: {', '.join(citations)}")
 
             except Exception as e:
-                await print(f"An error occurred: {e}")
-
-    # elif thread.parent_id == int(os.environ["FORUM"]):
-    #     messages = await thread.fetch_history()
-    #     if messages:
-    #         message: hikari.Message = messages[0]
-    #     await plugin.app.rest.create_forum_post(
-    #         int(os.environ["TEST_FORUM"]),
-    #         thread.name,
-    #         message.content,
-    #         attachments=message.attachments
-    #     )
+                logger.error(f"An error occurred: {e}")
     else:
         print(
             f"Thread {thread.name} does not belong to the question center category.")
+
+
+# @plugin.listener(hikari.GuildMessageCreateEvent)
+# async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
+#     """
+#     Handles new messages in the question center thread to respond to follow-up questions.
+#     """
+#     message = event.message
+#     if message.author.is_bot:
+#         return
+
+#     try:
+#         thread: hikari.GuildThreadChannel = await message.fetch_channel()
+#         if len(await thread.fetch_history()) <= 1:
+#             return
+
+#         if thread.parent_id == int(os.environ["TEST_FORUM"]):
+#             bot = plugin.app.d.bot
+
+#             response, citations = bot.continue_conversation(message.content)
+#             await thread.send(response)
+
+#             if citations:
+#                 logger.info(f"Referenced files: {', '.join(citations)}")
+
+#     except Exception as e:
+#         logger.error(f"An error occurred: {e}")
