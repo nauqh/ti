@@ -7,11 +7,11 @@ import os
 load_dotenv()
 
 app = lightbulb.BotApp(
-    os.getenv('TOKEN'),
+    os.getenv("TOKEN"),
     intents=hikari.Intents.ALL,
-    default_enabled_guilds=[int(os.getenv('GUILD_ID'))],
+    default_enabled_guilds=[int(os.getenv("GUILD_ID"))],
     help_slash_command=True,
-    banner=None
+    banner=None,
 )
 
 app.load_extensions_from("./bot/extensions", must_exist=True)
