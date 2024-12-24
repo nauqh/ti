@@ -2,7 +2,6 @@ import hikari
 import lightbulb
 from ..agent import DataScienceAssistant
 from loguru import logger
-import os
 
 QUESTION_CENTERS = {
     "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773},
