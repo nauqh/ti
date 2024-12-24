@@ -4,6 +4,11 @@ from ..agent import DataScienceAssistant
 from loguru import logger
 import os
 
+QUESTION_CENTERS = {
+    "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773},
+    "FSW": {"forum_id": 1077118780523679787, "ta_id": 912553106124972083},
+    "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046042656981022},
+}
 
 plugin = lightbulb.Plugin("Q&A", "🙋‍♂️ Question Center")
 
@@ -30,7 +35,7 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
     """
     thread: hikari.GuildThreadChannel = await event.fetch_channel()
 
-    if thread.parent_id == int(os.environ["TEST_FORUM"]):
+    if thread.parent_id in [guild["forum_id"] for guild in QUESTION_CENTERS.values()]:
         messages = await thread.fetch_history()
         if messages:
             message: hikari.Message = messages[0]
