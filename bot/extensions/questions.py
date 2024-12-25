@@ -74,39 +74,39 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
             f"Thread {thread.name} does not belong to the question center category.")
 
 
-@plugin.listener(hikari.GuildMessageCreateEvent)
-async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
-    """
-    Handles new messages in the question center thread to respond to follow-up questions.
-    """
-    message = event.message
-    if message.author.is_bot:
-        return
+# @plugin.listener(hikari.GuildMessageCreateEvent)
+# async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
+#     """
+#     Handles new messages in the question center thread to respond to follow-up questions.
+#     """
+#     message = event.message
+#     if message.author.is_bot:
+#         return
 
-    try:
-        thread: hikari.GuildThreadChannel = await message.fetch_channel()
-        if len(await thread.fetch_history()) <= 1:
-            return
-        if (
-            len(
-                [
-                    message
-                    for message in await thread.fetch_history()
-                    if message.author.id == 1316322317889962014
-                ]
-            )
-            >= 2
-        ):
-            logger.info(f"2 responses found, stop follow-up {thread.name}")
-            return
+#     try:
+#         thread: hikari.GuildThreadChannel = await message.fetch_channel()
+#         if len(await thread.fetch_history()) <= 1:
+#             return
+#         if (
+#             len(
+#                 [
+#                     message
+#                     for message in await thread.fetch_history()
+#                     if message.author.id == 1316322317889962014
+#                 ]
+#             )
+#             >= 2
+#         ):
+#             logger.info(f"2 responses found, stop follow-up {thread.name}")
+#             return
 
-        bot = plugin.app.d.bot
+#         bot = plugin.app.d.bot
 
-        response, citations = bot.continue_conversation(message.content)
-        await thread.send(response)
+#         response, citations = bot.continue_conversation(message.content)
+#         await thread.send(response)
 
-        if citations:
-            logger.info(f"Referenced files: {', '.join(citations)}")
+#         if citations:
+#             logger.info(f"Referenced files: {', '.join(citations)}")
 
-    except Exception as e:
-        logger.error(f"An error occurred: {e}")
+#     except Exception as e:
+#         logger.error(f"An error occurred: {e}")
