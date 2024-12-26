@@ -24,8 +24,8 @@ By integrating OpenAI's GPT models with Discord's API, the chatbot automates res
 
 **Read code from Github**
 <div style="display: flex;">
-  <img width="400" src="img/fig4.png" style="margin-right: 10px;">
-  <img width="400" src="img/fig3.png">
+  <img width="400" src="img/fig5.png" style="margin-right: 10px;">
+  <img width="400" src="img/fig6.png">
 </div>
 
 ## Key Components
