@@ -16,6 +16,11 @@ By integrating OpenAI's GPT models with Discord's API, the chatbot automates res
 - **Interactive Thread-Based Communication**: Engages in ongoing discussions in thread channels and handles follow-up questions seamlessly.
 - **TA Handoff**: Tags TAs for additional clarification on complex queries, ensuring comprehensive support.
 
+<div style="display: flex;">
+  <img width="400" src="fig1.png" style="margin-right: 10px;">
+  <img width="400" src="fig2.png">
+</div>
+
 ## Key Components
 ### 1. **Bot Application**
 - Built using the `hikari` and `lightbulb` libraries for Discord bot development.
@@ -82,21 +87,13 @@ bot/
 
 4. Run the bot:
    ```bash
-   python bot.py
+   python -Om bot
    ```
 
 ## Usage
 - The bot automatically monitors specified forum channels for new threads.
 - It responds to learner questions and manages ongoing discussions in threads.
 - Teaching assistants are tagged for follow-ups on complex queries.
-
-## Contributing
-Contributions are welcome! Please follow these steps:
-1. Fork the repository.
-2. Create a new branch: `git checkout -b feature-name`.
-3. Commit your changes: `git commit -m 'Add some feature'`.
-4. Push to the branch: `git push origin feature-name`.
-5. Open a pull request.
 
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for more details.
