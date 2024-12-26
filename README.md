@@ -16,9 +16,18 @@ By integrating OpenAI's GPT models with Discord's API, the chatbot automates res
 - **Interactive Thread-Based Communication**: Engages in ongoing discussions in thread channels and handles follow-up questions seamlessly.
 - **TA Handoff**: Tags TAs for additional clarification on complex queries, ensuring comprehensive support.
 
+E.g.:
+
+**Identify error from image**
 <div style="display: flex;">
-  <img width="400" src="fig1.png" style="margin-right: 10px;">
-  <img width="400" src="fig2.png">
+  <img width="400" src="img/fig1.png" style="margin-right: 10px;">
+  <img width="400" src="img/fig2.png">
+</div>
+
+**Read code from Github**
+<div style="display: flex;">
+  <img width="400" src="img/fig4.png" style="margin-right: 10px;">
+  <img width="400" src="img/fig3.png">
 </div>
 
 ## Key Components
