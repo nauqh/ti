@@ -1,0 +1,168 @@
+Pandas 101 Exam
+
+Question 1. What is the shape of the dataframe?
+
+A. 2 Dimensions
+
+B. (148654,)
+
+C. (10, 148654)
+
+D. (148654, 10)
+
+Question 2. Assume that every employee has a different name, how many employees are there in the dataset?
+
+A. 110811
+
+B. 148654
+
+C. 110810
+
+D. 148652
+
+Question 3. What is the average Base Pay of the whole dataset? 
+
+A. 66325.45
+
+B. 65007.45
+
+C. 5066.05
+
+D. 74768.32
+
+Question 4. Which of the observations is FALSE about the San Francisco employees?
+
+A. The size of the city government slightly grew from 2011 to 2014 (in term of number of employees)
+
+B. However, average of total pay increased steadily throughout the years thanks to better payment policy. 
+
+C. The average amount of overtime pay also increased.
+
+D. Maximum amount of Base Pay reached about 319.000 USD in 2014.
+
+Question 5. What is the name of the highest paid person (including benefits)?
+
+A. WILLIAM J. COAKER JR.
+
+B. NATHANIEL FORD
+
+C. JOE LOPEZ
+
+D. GREGORY P SUHR
+
+Question 6. What is his job title?
+
+A. General Manager-Metropolitan Transit Authority
+
+B. Special Nurse
+
+C. Chief of Police
+
+D. Chief Investment Officer
+
+Question 7. What is the name of the lowest paid person (including benefits)?
+
+A. WILLIAM J. COAKER JR.
+
+B. NATHANIEL FORD
+
+C. JOE LOPEZ
+
+D. LILLER JACKSON
+
+Question 8. How much did the person in Question 7 get paid (TotalPay) in 2014? 
+
+A. -618.13
+
+B. 618.13
+
+C. -257.56
+
+D. 257.56
+
+Question 9. How many unique employees have the same Job Title with `Liller Jackson` in the dataset? 
+
+A. 72
+
+B. 73
+
+C. 74
+
+D. 75
+
+Question 10. How many percentage of Special Nurse get paid overtime? 
+
+A. About 76%
+
+B. About 56%
+
+C. About 26%
+
+D. About 6%
+
+Question 11. Among employees who have TotalPay higher than the average TotalPay, how many unique Job Titles do they hold?
+
+*Expected output: 1307*
+
+Question 12. How many Job Titles were represented by only one person in 2013? 
+
+*Expected output: 202*
+
+Question 13. Write a single line of code to return **all information** of employees whose TotalPay are higher than the average TotalPay. 
+
+*Your output should look like this*
+
+<img src='https://i.imgur.com/5u2IcMS.png' width=1000>
+
+Question 14. Write a single line of code to find the top 5 job titles with the highest total OvertimePay across all years.
+
+*Your output should look like this*
+
+<img src='https://i.imgur.com/9wRrXk1.png' width=600>
+
+Question 15. Write a single line of code to determine the top 3 employees with the highest TotalPayBenefits. 
+
+*Your output should look like this*
+
+<img src='https://i.imgur.com/wqkFzMR.png' width=600>
+
+Question 16. Write a single line of code to calculate the average **Benefits** for each JobTitle and filter out titles where the average Benefits is less than $1,000. 
+
+*Your output should contains **24 records** in total*
+
+<img src='https://i.imgur.com/OqGGt4H.png' width=600>
+
+Question 17. Write a single line of code to list the job titles that have more than 1000 employees across all years.
+
+*Your output should contains **22 records** in total*
+
+<img src='https://i.imgur.com/3tIcC8p.png' width=600>
+
+Question 18. Write a single line of code to determine the percentage contribution of **OvertimePay** to **TotalPay** for each employee, and retrieve those where the contribution is more than 50%.
+
+*Your output should look like this*
+
+<img src='https://i.imgur.com/CCKZ54h.png' width=600>
+
+Question 19. Write a single line of code to return top 5 most common jobs.
+
+*Your output should look like this*
+
+```
+Transit Operator    9424
+Special Nurse       5791
+Registered Nurse    4955
+Custodian           3214
+Firefighter         3153
+Name: JobTitle, dtype: int64
+```
+
+Question 20. Among those 5 most common Job Titles of the whole dataset, how have the avarage Base Pay, Overtime Pay, and Total Pay changed over 4 years of the dataset?
+
+Hint: Start by identifying the most common jobs, then filter the dataset before computing the summary. 
+
+You may use functions like `isin()`, `value_counts()`.
+
+*Your output should look like this.*
+
+<img src='https://i.imgur.com/YUANVVF.png' width=1000>

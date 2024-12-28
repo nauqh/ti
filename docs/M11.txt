@@ -1,0 +1,175 @@
+Basic SQL Exam
+
+Question 1. **What is the main difference between a primary key and a foreign key?**
+
+<br/>
+
+A. A primary key is used to reference data in another table, while a foreign key is a unique identifier for each row in a table
+
+B. A primary key is a unique identifier for each row in a table, while a foreign key is used to reference data in another table
+
+C. A primary key is used in multiple tables, while a foreign key is used in a single table
+
+D. There is no difference between primary key and foreign key
+
+Question 2. **What is a one-to-many relationship in a database?**
+
+<br/>
+
+A. A relationship where one record in one table can be linked to multiple records in another table
+
+B. A relationship where multiple records in one table can be linked to one record in another table
+
+C. A relationship where multiple records in both tables can be linked to one record in each other's table
+
+Question 3. In a database of a school, each student can only belong to one class, but each class can have many students. 
+
+**Which type of relationship is established between the students and the classes table?**
+
+<br/>
+
+A. One to One
+
+B. One to Many Mandatory
+
+C. One to Many Optional
+
+D. Many to Many
+
+Question 4. About the schema below, which answer is **WRONG**?
+
+<img width='500' src='https://i.imgur.com/B8WzLoz.png'>
+
+A. A invoice must belong to a specific customer
+
+B. A customer must have at least 1 invoice
+
+C. In the Invoices Table, CustomerID is the Foreign Key
+
+D. In the Customers Table, CustomerID is the Primary Key
+
+Question 5. **How many products have the word 'chocolate' in their product name?**
+
+<br/>
+
+_Expected output_:
+
+![](https://i.imgur.com/Y8xDe9w.png)
+
+Question 6. **What are the names and unit prices of the five most expensive products?**
+
+Order these products from most expensive to least expensive.
+
+<br/>
+
+_Expected output_:
+
+![](https://i.imgur.com/x3jCGYQ.png)
+
+Question 7. **Get the list of five countries with the most number of customers staying there.**
+
+Order these countries from most customers to least customers.
+
+<br/>
+
+_Expected output_:
+
+![](https://i.imgur.com/RHSnPK7.png)
+
+Question 8. **Get the list of five countries with the least number of suppliers staying there.**
+
+Order the result by number of suppliers.
+
+<br />
+
+_Expected output_:
+
+![](https://i.imgur.com/Z3nScfY.png)
+
+Question 9. **Retrieve the list of category names with number of products in each category.**
+
+Order the result by number of product descending.
+
+<br />
+
+_Expected output_:
+
+![](https://i.imgur.com/r3UZdT7.png)
+
+Question 10. **Retrieve the names and total revenue of the top 5 selling products.**
+
+Order the result by total revenue descending.
+
+<br/>
+
+_Expected output_:
+
+<img width='800' src='https://i.imgur.com/Qai3Crt.png'>
+
+Question 11. **How many orders does the company ship to "Western Europe" each year?**
+
+<br/>
+
+_Expected output_:
+
+![](https://i.imgur.com/VY3zjgm.png)
+
+Question 12. **What are the company names of the customers who have ordered the product 'Tofu'?**
+
+<br/>
+
+_Expected output_:
+
+![](https://i.imgur.com/OkIYI2i.png)
+
+Question 13. **Retrieve customer IDs and company names of customer companies that have never placed an order.**
+
+<br/>
+
+_Expected output_:
+
+![](https://i.imgur.com/v8ezSiO.png)
+
+Question 14. **What are the company names of the suppliers that supply only one product?**
+
+<br/>
+
+_Expected output_:
+
+ <img width='700' src='https://i.imgur.com/UHvFhzG.png'>
+
+Question 15. **What are the names of employees who have taken orders from customers who live in the same city as the employee?**
+
+Order the result by EmployeeID.
+
+<br/>
+
+_Expected output_:
+
+![](https://i.imgur.com/yohxKjS.png)
+
+Question 16. **List the top 5 products based on total quantity ordered.**
+
+Order the result by total quantity descending.
+
+<br/>
+
+_Expected output_:
+
+![](https://i.imgur.com/xA2yU1e.png)
+
+Question 17. **Find the total number of orders and the total number of customers who have made orders in each country.**
+
+<br/>
+
+_Expected output_: (ordered by "Total Order" descending, and "Total Customers" ascending)
+
+![](https://i.imgur.com/qJsGkti.png)
+
+Question 18. **Find the average revenue for each product category.**
+
+<br/>
+
+_Expected output_: (ordered by average revenue descending)
+
+<img width='800' src='https://i.imgur.com/wwdkkuJ.png'>

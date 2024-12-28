@@ -1,0 +1,348 @@
+Python 101 Exam
+
+Question 1. Given the following code:
+```
+name = "Tom"
+height = 180
+```
+
+Which of the following `print` statement will give an error?
+
+A. `print("My name is " + name + " and my height is " + height)`
+
+B. `print("My name is " + name + " and my height is " + str(height))`
+
+C. `print("My name is " + str(name) + " and my height is " + str(height))`
+
+D. `print(f"My name is {name} and my height is {height}")`
+
+Question 2. Given the following code:
+```
+def foo(x,y):
+    x = x+1
+    z = 3*x + 2*y
+
+z = 10
+foo(2, 1)
+```
+What is the value of `z` after running the code above?
+
+A. 9
+
+B. 10
+
+C. 11
+
+D. 12
+
+Question 3. Given the following code:
+```
+a = "Hello World Philippines!"
+```
+
+Which of the following are empty strings?
+
+```
+b = a[:3]
+c = a[:-1:-1]
+d = a[0:-1:2]
+e = a[1:-2:-1]
+f = a[-1:0:-1]
+g = a[-3:-1]
+```
+
+Choose **at most** 2 correct choices. To select multiple choices, press `Ctrl`+click (for windows/linux) or `Cmd`+click (for Mac).
+
+Question 4. Given the following code:
+``` 
+list_1 = [0,1,2,3,4,5]
+list_2 = list_1
+list_2[0] +=1
+list_2 = list_2.pop(5)
+```
+
+What is the value of `list_1` after running the code above?
+
+A. `[0, 1, 2, 3, 4]`
+
+B. `[1, 1, 2, 3, 4]`
+
+C. `[1, 1, 2, 3, 4, 5]`
+
+D. `5`
+
+Question 5. Given the following code:
+```
+w = "good morning Mariana"
+v = ('a','e','i','o','u')
+t = "aeiou"
+l = list(v)
+s = set(t)
+```
+Which list comprehension returns a list of all vowels in the string `w`?
+
+A. `[c for c in w if c in v]`
+
+B. `[c for c in w if c in t]`
+
+C. `[c for c in w if c in l]`
+
+D. `[c for c in w if c in s]`
+
+E. All of the above
+
+Question 6. Given the following code:
+```
+s = ' _-_CoderSchool Data Science 2022 _ _'
+```
+
+Which of the following expressions correctly returns the string "CoderSchool Data Science 2022"?
+
+Choose **at most** 2 correct choices. To select multiple choices, press `Ctrl`+click (for windows/linux) or `Cmd`+click (for Mac).
+
+A. `s.strip('-_ ')`
+
+B. `s.replace('_','').replace('-','').replace(' ','')`
+
+C. `s.replace('_','').replace('-','').strip()`
+
+D. `s.remove('_').remove('-').remove(' ')`
+
+Question 7. Which of the following function definitions is VALID (i.e. run without error)?
+
+Choose **at most** 2 correct choices. To select multiple choices, press `Ctrl`+click (for windows/linux) or `Cmd`+click (for Mac).
+
+Note: this question is not asking if the function works as intended, only if the function definition runs without error.
+
+A.
+```
+def keys_and_values(new_key, new_val, k=[], v=[]):
+k.append(new_key)
+v.append(new_val)
+return k,v
+```
+
+B.
+```
+def first_ten_fibonacci:
+    fibo_list = [1,1]
+    for i in range(8):
+        next_fibo = fibo_list[i] + fibo_list[i+1]
+        fibo_list.append(next_fibo)
+    return fibo_list
+```
+
+C.
+```
+def mult_3_plus_1(x):
+    y = 3*x
+    z = y+1
+    return z
+```
+
+D.
+```
+def sum_of_first_n_numbers():
+    n = int(input())
+    my_sum, i = 0, 1
+    while i <= n:
+        my_sum += i
+    print(f'Sum of first {n} numbers:', my_sum)
+```
+
+Question 8. Remember we have learned about dictionary in python, we know every entry in a dictionary will have a *key* and a *value*.
+
+Which statement is FALSE about dictionary *keys* and *values*?
+
+A. Keys must be unique.
+
+B. Keys must be immutable.
+
+C. Keys must be string.
+
+D. Values can have duplicates.
+
+E. Values can be of any data type.
+
+Question 9. Which of the following statements about the behavior of round() and ceil() in Python is **NOT** true?
+
+A. round() rounds a number using Banker's rounding method.
+
+B. ceil() always rounds a number up to the nearest integer
+
+C. round() and ceil() will always give the same result.
+
+D. round() can accept an optional second argument to specify the number of decimal places to round to.
+
+Question 10. What will be the output of the following code?
+
+```
+def modify_list(lst, val):
+    lst.append(val)
+    lst = [42, 43]
+    return lst
+
+original_list = [1, 2, 3]
+new_list = modify_list(original_list, 4)
+print(original_list)
+print(new_list)
+```
+
+A. `[1, 2, 3, 4]` and `[42, 43]`
+
+B. `[1, 2, 3, 4]` and `[1, 2, 3, 4, 42, 43]`
+
+C. `[1, 2, 3]` and `[42, 43]`
+
+D. `[1, 2, 3]` and `[1, 2, 3, 42, 43]`
+
+Question 11. Complete a function to count how many times the smallest number of a list appears in that list.
+
+*Requirements:*
+- **Input:** a `list` of `int`.
+- **Output:** an `int`.
+
+*Example*:
+```
+>>> my_list_1 = [0, 1, 3, 2, 8, 0, 9, 10, 0, 5]
+>>> print(count_min(my_list_1))
+3
+>>> my_list_2 = [-3, 0, 3, 4, 2, -1, 9, 6]
+>>> print(count_min(my_list_2))
+1
+```
+
+Question 12. Complete a function to calculate the difference between maximum and minimum values of a tuple of integers; in other words, the maximum value minus the minimum value of the tuple.
+
+*Requirements:*
+- **Input:** a `tuple` of `int`.
+- **Output:** an `int`. The difference between the max and min of the input tuple.
+
+*Example*:
+```
+>>> my_tuple_1 = (0, 1, 3, 2, 8, 0, 9, 10, 0, 5)
+>>> print(calculate_range(my_tuple_1))
+10
+>>> my_tuple_2 = (-3, 0, 3, 4, 2, -1, 9, 6)
+>>> print(calculate_range(my_tuple_2))
+12
+```
+
+Question 13. Complete a function that reads an email address, and returns either the username or the domain name depending on the second argument.
+
+Consider an example email: `chinh.nguyen@coderschool.vn`.
+- The username is the part before "@" (`chinh.nguyen`)
+- The domain name is the part after "@" (`coderschool.vn`)
+
+*Requirements:*
+
+- **Input:** the function requires two inputs in this order:
+    - **First argument**: a `string`. This is the email address.
+    - **Second argument**: a `boolean`. If `True`, returns the username; otherwise returns the domain name.
+- **Output:** A `string`. Username or domain name.
+
+*Example:*
+```
+>>> print(extract_email('chinh.nguyen@coderschool.vn', True))
+chinh.nguyen
+>>> print(extract_email('alexa1234@gmail.com', False))
+gmail.com
+>>> print(extract_email('Joh*_D03+14/12@obviousscam.com', True))
+Joh*_D03+14/12
+```
+
+Question 14. In the receipt of a certain shop, each item is listed with its unit weight (weight of a single unit), unit price (price of a single unit), and the number of units that was bought. 
+
+In python, each item can be represented as a dictionary like so:
+```
+item_1 = {'unit_weight': 1, 'unit_price': 2, 'number_of_units': 5}
+item_2 = {'unit_weight': 2.3, 'unit_price': 0.4, 'number_of_units': 3}
+...
+```
+
+Complete a function to calculate the ***total weight and total price of one item***, and return one of those values depending on a second input argument.
+
+*Requirements:*
+
+- **Input:** the function requires two inputs in this order:
+    - **First argument:** a `dict`. This is a dictionary representing a single item as described above.
+    - **Second argument:** a `boolean`. If `True`, returns the total weight of the input item; otherwise returns the total price.
+
+- **Output:** A number. Total weight or total price.
+
+For example:
+```
+>>> item_1 = {'unit_weight': 1.5, 'unit_price': 2, 'number_of_units': 5}
+>>> print(item_calculator(item_1, True))
+7.5
+>>> print(item_calculator(item_1, False))
+10
+```
+
+Question 15. In the previous question you were tasked with creating a function that can calculate the total weight or total price of one item.
+
+Given a receipt like one of the examples below:
+```
+>>> receipt_1 = {
+    'milk':   {'unit_weight': 1, 'unit_price': 10, 'number_of_units': 3},
+    'rice':   {'unit_weight': 2, 'unit_price': 5, 'number_of_units': 4},
+    'cookie': {'unit_weight': 0.2, 'unit_price': 2, 'number_of_units': 10},
+    'sugar':  {'unit_weight': 0.5, 'unit_price': 7, 'number_of_units': 2},
+}
+>>> receipt_2 = {
+    'chair': {'unit_weight': 4.5, 'unit_price': 15, 'number_of_units': 2},
+    'desk':  {'unit_weight': 10, 'unit_price': 22.5,  'number_of_units': 1}
+}
+...
+```
+
+Complete a function to return the name of the *heaviest item* in the receipt based on the **total weight** (*NOT* the unit weight).
+
+> **NOTE:** the receipt may have items other than the ones in the example. Make sure your code works with any receipt that follows the format above, which can have any item name.
+
+*Requirements:*
+
+- **Input:** a `dict`. This is a dictionary representing a receipt of items as described above.
+
+- **Output:** a `string`. This is the name of the heaviest item in the receipt.
+
+For example:
+```
+>>> print(heaviest_item(receipt_1))
+rice
+>>> print(heaviest_item(receipt_2))
+desk
+```
+
+Question 16. Given a receipt like one of the examples below:
+```
+>>> receipt_1 = {
+    'milk':   {'unit_weight': 1, 'unit_price': 10, 'number_of_units': 3},
+    'rice':   {'unit_weight': 2, 'unit_price': 5, 'number_of_units': 4},
+    'cookie': {'unit_weight': 0.2, 'unit_price': 2, 'number_of_units': 10},
+    'sugar':  {'unit_weight': 0.5, 'unit_price': 7, 'number_of_units': 2},
+}
+>>> receipt_2 = {
+    'chair': {'unit_weight': 4.5, 'unit_price': 15, 'number_of_units': 2},
+    'desk':  {'unit_weight': 10, 'unit_price': 22.5,  'number_of_units': 1}
+}
+...
+```
+
+Similar to the last question, complete a function to return the name of the *most expensive item* in the receipt based on the **total price** (*NOT* the unit price).
+
+> **NOTE:** the receipt may have items other than the ones in the example. Make sure your code works with any receipt that follows the format above, which can have any item name.
+
+*Requirements:*
+
+- **Input:** a `dict`. The receipt dictionary.
+
+- **Output:** a `string`. The name of the most expensive item in the receipt.
+
+For example:
+```
+>>> print(priciest_item(receipt_1))
+milk
+>>> print(priciest_item(receipt_2))
+chair
+```
