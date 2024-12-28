@@ -97,9 +97,9 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
                     if message.author.id == 1316322317889962014
                 ]
             )
-            >= 2
+            >= 3
         ):
-            logger.info(f"2 responses found, stop follow-up {thread.name}")
+            logger.info(f"3 responses found, stop follow-up {thread.name}")
             return
 
         bot = plugin.app.d.bot
