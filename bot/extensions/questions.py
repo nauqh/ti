@@ -89,7 +89,9 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
 
     try:
         thread: hikari.GuildThreadChannel = await message.fetch_channel()
-        if thread.parent_id not in [guild["forum_id"] for guild in QUESTION_CENTERS.values()]:
+        if thread.parent_id not in [
+            guild["forum_id"] for guild in QUESTION_CENTERS.values()
+        ]:
             return
         if len(await thread.fetch_history()) <= 1:
             return
@@ -98,12 +100,30 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
                 [
                     message
                     for message in await thread.fetch_history()
-                    if message.author.id == 1316322317889962014
+                    if message.author.id == plugin.app.get_me().id
+                ]
+            )
+            == 2
+        ):
+            message = await thread.send(
+                "Thanks for your question! How would you rate my reply from 1 to 5?\n Your feedback is greatly appreciated! 😊"
+            )
+
+            emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
+            for emoji in emojis:
+                await message.add_reaction(emoji)
+
+        if (
+            len(
+                [
+                    message
+                    for message in await thread.fetch_history()
+                    if message.author.id == plugin.app.get_me().id
                 ]
             )
             >= 2
         ):
-            logger.info(f"3 responses found, stop follow-up {thread.name}")
+            logger.info(f"2 responses found, stop follow-up {thread.name}")
             return
 
         bot = plugin.app.d.bot
@@ -116,3 +136,13 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
 
     except Exception as e:
         logger.error(f"An error occurred: {e}")
+
+
+@plugin.listener(hikari.ReactionAddEvent)
+async def on_reaction_add(event: hikari.ReactionAddEvent) -> None:
+    if event.user_id == plugin.app.get_me().id:
+        return
+
+    if event.emoji_name in ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]:
+        logger.info(
+            f"User {event.user_id} rated the response with {event.emoji_name}")
