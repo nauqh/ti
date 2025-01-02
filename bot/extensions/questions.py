@@ -153,5 +153,5 @@ async def on_reaction_add(event: hikari.ReactionAddEvent) -> None:
             f"User {user.display_name} rated the response with {event.emoji_name}")
         await plugin.app.rest.create_message(
             1237424754739253279,  # DS staff-internal
-            f"User `{user.display_name}` rated the response with a score of {score} in thread {thread_link}"
+            f"`{user.display_name}` rated the response with a score of {score} in thread {thread_link}"
         )
