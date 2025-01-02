@@ -84,6 +84,7 @@ class DataScienceAssistant:
         self.vector_store = None
         self.assistant = None
         self.thread = None
+        self.threads = {}
 
     def create_vector_store(self, file_paths):
         """Creates a vector store and uploads files to it."""

@@ -6,7 +6,7 @@ from loguru import logger
 QUESTION_CENTERS = {
     "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773},
     "FSW": {"forum_id": 1077118780523679787, "ta_id": 912553106124972083},
-    "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046042656981022},
+    # "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046042656981022},
 }
 
 plugin = lightbulb.Plugin("Q&A", "🙋‍♂️ Question Center")
@@ -59,6 +59,10 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
                     file_paths=attachments,
                 )
 
+                # Store the Discord thread ID and the assistant thread ID
+                bot.threads[thread.id] = ds_thread.id
+                logger.info(f"Added thread {thread.name} to the bot's memory.")
+
                 messages = bot.create_and_run_thread(thread=ds_thread)
                 response, citations = bot.extract_response(messages)
                 await thread.send(response)
@@ -103,7 +107,14 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
             return
 
         bot = plugin.app.d.bot
-
+        ds_thread_id = bot.threads.get(thread.id)
+        if not ds_thread_id:
+            logger.error(
+                f"No assistant thread found for Discord thread ID {thread.id}")
+            return
+        else:
+            logger.info(
+                f"Assistant thread found for thread_id: {thread.id}: {ds_thread_id}")
         response, citations = bot.continue_conversation(message.content)
         await thread.send(response)
 
