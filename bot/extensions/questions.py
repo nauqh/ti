@@ -101,21 +101,14 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
                     if message.author.id == 1316322317889962014
                 ]
             )
-            >= 3
+            >= 2
         ):
             logger.info(f"3 responses found, stop follow-up {thread.name}")
             return
 
         bot = plugin.app.d.bot
-        ds_thread_id = bot.threads.get(thread.id)
-        if not ds_thread_id:
-            logger.error(
-                f"No assistant thread found for Discord thread ID {thread.id}")
-            return
-        else:
-            logger.info(
-                f"Assistant thread found for thread_id: {thread.id}: {ds_thread_id}")
-        response, citations = bot.continue_conversation(message.content)
+        response, citations = bot.continue_conversation(
+            message.content, thread.id)
         await thread.send(response)
 
         if citations:

@@ -83,7 +83,6 @@ class DataScienceAssistant:
         self.client = OpenAI()
         self.vector_store = None
         self.assistant = None
-        self.thread = None
         self.threads = {}
 
     def create_vector_store(self, file_paths):
@@ -230,7 +229,7 @@ class DataScienceAssistant:
                 content.append(
                     {"type": "image_url", "image_url": {"url": url}})
 
-        self.thread = self.client.beta.threads.create(
+        thread = self.client.beta.threads.create(
             messages=[
                 {
                     "role": "user",
@@ -239,9 +238,10 @@ class DataScienceAssistant:
                 }
             ]
         )
-        return self.thread
 
-    def call_required_functions(self, run, required_actions: dict):
+        return thread
+
+    def call_required_functions(self, run, required_actions: dict, thread):
         """
         Handles required tool calls and submits outputs back to the assistant.
         """
@@ -281,7 +281,7 @@ class DataScienceAssistant:
         if tool_outputs:
             logger.info("Submitting tool outputs back to the assistant...")
             self.client.beta.threads.runs.submit_tool_outputs(
-                thread_id=self.thread.id, run_id=run.id, tool_outputs=tool_outputs
+                thread_id=thread.id, run_id=run.id, tool_outputs=tool_outputs
             )
 
     def create_and_run_thread(self, thread):
@@ -311,6 +311,7 @@ class DataScienceAssistant:
                 self.call_required_functions(
                     run=run,
                     required_actions=run_status.required_action.submit_tool_outputs.model_dump(),
+                    thread=thread
                 )
             elif run_status.status == "failed":
                 logger.error("Run failed.")
@@ -336,26 +337,32 @@ class DataScienceAssistant:
 
         return message_content.value, list(citations)
 
-    def add_message_to_thread(self, role, content):
+    def add_message_to_thread(self, role, content, discord_thread_id):
         """Adds a new message to an existing thread."""
-        if not self.thread:
-            raise ValueError("Thread must be created before adding messages.")
+        if discord_thread_id not in self.threads:
+            raise ValueError(
+                f"No thread found for Discord thread ID: {discord_thread_id}")
+
+        thread_id = self.threads[discord_thread_id]
 
         self.client.beta.threads.messages.create(
-            thread_id=self.thread.id, role=role, content=content
+            thread_id=thread_id, role=role, content=content
         )
 
-    def continue_conversation(self, new_message):
+    def continue_conversation(self, new_message, discord_thread_id):
         """Adds a new user message to the thread, creates a run, and retrieves the response."""
-        self.add_message_to_thread(role="user", content=new_message)
+        self.add_message_to_thread(
+            role="user", content=new_message, discord_thread_id=discord_thread_id)
+
+        thread_id = self.threads[discord_thread_id]
 
         run = self.client.beta.threads.runs.create_and_poll(
-            thread_id=self.thread.id, assistant_id=self.assistant.id
+            thread_id=thread_id, assistant_id=self.assistant.id
         )
 
         messages = list(
             self.client.beta.threads.messages.list(
-                thread_id=self.thread.id, run_id=run.id
+                thread_id=thread_id, run_id=run.id
             )
         )
 
