@@ -47,20 +47,22 @@ By integrating OpenAI's GPT models with Discord's API, the chatbot automates res
 ### 4. Workflow for handling learner question
 ```mermaid
 graph TD
-    A[On new Mesage] --> B[Create Thread]
-    B --> C[Add Message to Thread]
-    C --> D[Create Run]
-    D --> E{Run Status Check}
-    E -->|completed| F[Retrieve Messages from Thread]
-    E -->|requires_action| G[Process Required Tool Calls]
-    G --> D
-    E -->|failed| H[Log Error and Exit]
+    A[On new Message] --> B[Check if Thread Exists]
+    B -->|Yes| C[Add Message to Thread]
+    B -->|No| D[Create Thread]
+    D --> C
+    C --> E[Create Run]
+    E --> F{Run Status Check}
+    F -->|completed| G[Retrieve Messages from Thread]
+    F -->|requires_action| H[Process Required Tool Calls]
+    H --> E
+    F -->|failed| I[Log Error and Exit]
 
-    F --> I[Extract Assistant's Response]
-    I --> J[Display Response to User]
-    J --> K{Continue Conversation?}
-    K -->|Yes| C
-    K -->|No| M[End]
+    G --> J[Extract Assistant's Response]
+    J --> K[Display Response to User]
+    K --> L{Continue Conversation?}
+    L -->|Yes| C
+    L -->|No| M[End]
 ```
 ## Project Structure
 ```
@@ -76,8 +78,8 @@ bot/
 ## Installation
 1. Clone this repository:
    ```bash
-   git clone https://github.com/<your-username>/coderschool-bot.git
-   cd coderschool-bot
+   git clone https://github.com/nauqh/ti.git
+   cd ti
    ```
 
 2. Install dependencies:
