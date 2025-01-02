@@ -4,7 +4,7 @@ from ..agent import DataScienceAssistant
 from loguru import logger
 
 QUESTION_CENTERS = {
-    "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773},
+    "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773, "staff_channel": 1237424754739253279},
     "FSW": {"forum_id": 1077118780523679787, "ta_id": 912553106124972083},
     # "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046042656981022},
 }
@@ -144,5 +144,14 @@ async def on_reaction_add(event: hikari.ReactionAddEvent) -> None:
         return
 
     if event.emoji_name in ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]:
+
+        thread = await plugin.app.rest.fetch_channel(event.channel_id)
+        score = event.emoji_name[0]
+        user = await plugin.app.rest.fetch_user(event.user_id)
+        thread_link = f"https://discord.com/channels/{thread.guild_id}/{thread.id}"
         logger.info(
-            f"User {event.user_id} rated the response with {event.emoji_name}")
+            f"User {user.display_name} rated the response with {event.emoji_name}")
+        await plugin.app.rest.create_message(
+            1237424754739253279,  # DS staff-internal
+            f"User `{user.display_name}` rated the response with a score of {score} in thread {thread_link}"
+        )
