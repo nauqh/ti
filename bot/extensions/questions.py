@@ -106,7 +106,7 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
             == 2
         ):
             message = await thread.send(
-                "Thanks for your question! How would you rate my reply from 1 to 5?\n Your feedback is greatly appreciated! 😊"
+                "Thanks for your question! How would you rate my response from 1 to 5?\n Your feedback is greatly appreciated! 😊"
             )
 
             emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
