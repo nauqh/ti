@@ -89,9 +89,49 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
 
     try:
         thread: hikari.GuildThreadChannel = await message.fetch_channel()
-        if not is_question_center_thread(thread):
+        if thread.parent_id not in [
+            guild["forum_id"] for guild in QUESTION_CENTERS.values()
+        ]:
             return
-        if await is_initial_message(thread):
+        if len(await thread.fetch_history()) <= 1:
+            return
+        if (
+            len(
+                [
+                    message
+                    for message in await thread.fetch_history()
+                    if message.author.id == plugin.app.get_me().id
+                ]
+            )
+            == 1
+        ):
+            bot = plugin.app.d.bot
+            response, citations = bot.continue_conversation(
+                message.content, thread.id)
+            await thread.send(response)
+
+            if citations:
+                logger.info(f"Referenced files: {', '.join(citations)}")
+
+            message = await thread.send(
+                "Thanks for your question! How would you rate my response from 1 to 5?\n Your feedback is greatly appreciated! 😊"
+            )
+
+            emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
+            for emoji in emojis:
+                await message.add_reaction(emoji)
+
+        if (
+            len(
+                [
+                    message
+                    for message in await thread.fetch_history()
+                    if message.author.id == plugin.app.get_me().id
+                ]
+            )
+            >= 2
+        ):
+            logger.info(f"2 responses found, stop follow-up {thread.name}")
             return
 
         bot = plugin.app.d.bot
@@ -102,34 +142,8 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
         if citations:
             logger.info(f"Referenced files: {', '.join(citations)}")
 
-        if await is_second_response(thread):
-            await prompt_for_rating(message, thread)
-            return
-
     except Exception as e:
         logger.error(f"An error occurred: {e}")
-
-
-def is_question_center_thread(thread: hikari.GuildThreadChannel) -> bool:
-    return thread.parent_id in [guild["forum_id"] for guild in QUESTION_CENTERS.values()]
-
-
-async def is_initial_message(thread: hikari.GuildThreadChannel) -> bool:
-    return len(await thread.fetch_history()) <= 1
-
-
-async def is_second_response(thread: hikari.GuildThreadChannel) -> bool:
-    return len([message for message in await thread.fetch_history() if message.author.id == plugin.app.get_me().id]) == 2
-
-
-async def prompt_for_rating(message: hikari.Message, thread: hikari.GuildThreadChannel) -> None:
-    message = await thread.send(
-        f"{message.author.mention} Thanks for your question! How would you rate my response from 1 to 5?\n Your feedback is greatly appreciated! 😊"
-    )
-
-    emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
-    for emoji in emojis:
-        await message.add_reaction(emoji)
 
 
 @plugin.listener(hikari.ReactionAddEvent)
