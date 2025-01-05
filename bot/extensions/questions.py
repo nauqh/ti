@@ -134,14 +134,6 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
             logger.info(f"2 responses found, stop follow-up {thread.name}")
             return
 
-        bot = plugin.app.d.bot
-        response, citations = bot.continue_conversation(
-            message.content, thread.id)
-        await thread.send(response)
-
-        if citations:
-            logger.info(f"Referenced files: {', '.join(citations)}")
-
     except Exception as e:
         logger.error(f"An error occurred: {e}")
 
