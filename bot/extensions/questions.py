@@ -73,7 +73,7 @@ async def handle_follow_up_message(thread: hikari.GuildThreadChannel, message: h
         logger.info(f"Referenced files: {', '.join(citations)}")
 
     feedback_message = await thread.send(
-        "Thanks for your question! How would you rate my response from 1 to 5?\n Your feedback is greatly appreciated! 😊"
+        f"{message.author.mention} Thanks for your question! How would you rate my response from 1 to 5?\n Your feedback is greatly appreciated! 😊"
     )
 
     emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
