@@ -314,7 +314,7 @@ class DataScienceAssistant:
                     thread=thread
                 )
             elif run_status.status == "failed":
-                logger.error("Run failed.")
+                logger.error(f"Run failed: {run_status.last_error}")
                 raise RuntimeError("The assistant run has failed.")
             else:
                 logger.info(
