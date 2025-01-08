@@ -68,7 +68,7 @@ def fetch_all_code_from_repo(owner: str, repo: str, path: str = "") -> str:
 
     for item in contents:
         if item["type"] == "file" and item["name"].endswith(
-            (".py", ".js", ".jsx", "tsx", "ts", ".html", ".css")
+            (".py", ".js", ".jsx", "tsx", "ts")
         ):
             file_response = requests.get(item["download_url"])
             all_code += f"\n\n# File: {item['path']}\n" + file_response.text
