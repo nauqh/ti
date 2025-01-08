@@ -67,6 +67,8 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
 async def handle_follow_up_message(thread: hikari.GuildThreadChannel, message: hikari.Message) -> None:
     bot = plugin.app.d.bot
     response, citations = bot.continue_conversation(message.content, thread.id)
+
+    # Double check if bot is the author of the last message (server causes bot to respond twice)
     history = await thread.fetch_history()
     if history and history[0].author.id == plugin.app.get_me().id:
         return
