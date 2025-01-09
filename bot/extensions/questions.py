@@ -102,10 +102,6 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
             await handle_follow_up_message(thread, message)
         elif len([msg for msg in await thread.fetch_history() if msg.author.id == plugin.app.get_me().id]) >= 2:
             logger.info(f"2 responses found, stop follow-up {thread.name}")
-
-    except hikari.errors.BadRequestError as e:
-        logger.error(f"Bad request: {e}")
-        await thread.send("Could you please provide more specific information so I can assist you better?")
     except Exception as e:
         logger.error(f"An error occurred: {e}")
 

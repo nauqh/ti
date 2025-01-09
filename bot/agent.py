@@ -68,7 +68,7 @@ def fetch_all_code_from_repo(owner: str, repo: str, path: str = "") -> str:
 
     for item in contents:
         if item["type"] == "file" and item["name"].endswith(
-            (".py", ".js", ".jsx", "tsx", "ts")
+            (".py", ".js", ".jsx", "tsx", "ts", "html", "css")
         ):
             file_response = requests.get(item["download_url"])
             all_code += f"\n\n# File: {item['path']}\n" + file_response.text
@@ -241,7 +241,7 @@ class DataScienceAssistant:
 
         return thread
 
-    def call_required_functions(self, run, required_actions: dict, thread):
+    def call_required_functions(self, run, required_actions: dict, thread_id):
         """
         Handles required tool calls and submits outputs back to the assistant.
         """
@@ -281,7 +281,7 @@ class DataScienceAssistant:
         if tool_outputs:
             logger.info("Submitting tool outputs back to the assistant...")
             self.client.beta.threads.runs.submit_tool_outputs(
-                thread_id=thread.id, run_id=run.id, tool_outputs=tool_outputs
+                thread_id=thread_id, run_id=run.id, tool_outputs=tool_outputs
             )
 
     def create_and_run_thread(self, thread):
@@ -296,9 +296,6 @@ class DataScienceAssistant:
             run_status = self.client.beta.threads.runs.retrieve(
                 thread_id=thread.id, run_id=run.id
             )
-
-            logger.info(f"Run status: {run_status.status}")
-
             if run_status.status == "completed":
                 logger.info("Run completed successfully.")
                 messages = self.client.beta.threads.messages.list(
@@ -311,11 +308,19 @@ class DataScienceAssistant:
                 self.call_required_functions(
                     run=run,
                     required_actions=run_status.required_action.submit_tool_outputs.model_dump(),
-                    thread=thread
+                    thread_id=thread.id
                 )
             elif run_status.status == "failed":
-                logger.error(f"Run failed: {run_status.last_error}")
-                raise RuntimeError("The assistant run has failed.")
+                logger.error(f"Run failed: {run_status.last_error.code}")
+                if run_status.last_error.code == 'rate_limit_exceeded':
+                    self.client.beta.threads.messages.create(
+                        thread_id=thread.id,
+                        role="assistant",
+                        content="Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
+                    )
+                    return "Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
+                else:
+                    raise RuntimeError("The assistant run has failed.")
             else:
                 logger.info(
                     "Run is in progress. Waiting for the next update...")
@@ -323,6 +328,8 @@ class DataScienceAssistant:
 
     def extract_response(self, messages):
         """Processes and extracts the assistant's response."""
+        if not isinstance(messages, list):
+            return messages, None
         message_content = messages[0].content[0].text
         annotations = message_content.annotations
         citations = set()
@@ -356,17 +363,48 @@ class DataScienceAssistant:
 
         thread_id = self.threads[discord_thread_id]
 
-        run = self.client.beta.threads.runs.create_and_poll(
+        run = self.client.beta.threads.runs.create(
             thread_id=thread_id, assistant_id=self.assistant.id
         )
 
-        messages = list(
-            self.client.beta.threads.messages.list(
+        while True:
+            run_status = self.client.beta.threads.runs.retrieve(
                 thread_id=thread_id, run_id=run.id
             )
-        )
 
-        return self.extract_response(messages)
+            if run_status.status == "completed":
+                logger.info("Run completed successfully.")
+                messages = list(
+                    self.client.beta.threads.messages.list(
+                        thread_id=thread_id, run_id=run.id
+                    )
+                )
+
+                return self.extract_response(messages)
+            elif run_status.status == "requires_action":
+                logger.info(
+                    "Run requires action. Processing required tool calls...")
+                self.call_required_functions(
+                    run=run,
+                    required_actions=run_status.required_action.submit_tool_outputs.model_dump(),
+                    thread_id=thread_id
+                )
+            elif run_status.status == "failed":
+                logger.error(f"Run failed: {run_status.last_error.code}")
+                logger.error(f"Run failed: {run_status.last_error.message}")
+                if run_status.last_error.code == 'rate_limit_exceeded':
+                    self.client.beta.threads.messages.create(
+                        thread_id=thread_id,
+                        role="assistant",
+                        content="Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
+                    )
+                    return "Your GitHub link is too general. Please specify a specific folder in your GitHub repository.", None
+                else:
+                    raise RuntimeError("The assistant run has failed.")
+            else:
+                logger.info(
+                    "Run is in progress. Waiting for the next update...")
+                time.sleep(5)
 
 
 if __name__ == "__main__":
