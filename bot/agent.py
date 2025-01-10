@@ -135,40 +135,99 @@ class DataScienceAssistant:
             print(f"An unexpected error occurred: {e}")
             raise
 
-    def create_thread(self, user_message, file_paths=None, image_urls=None):
-        """Creates a thread and optionally attaches a file to the user's message."""
+    def _prepare_attachments(self, file_paths):
+        """Utility method to prepare file attachments."""
         attachments = []
         if file_paths:
             for path in file_paths:
                 message_file = self.upload_file(path)
-                attachments.append(
-                    {
-                        "file_id": message_file.id,
-                        "tools": [
-                            {"type": "file_search"},
-                            {"type": "code_interpreter"},
-                        ],
-                    }
-                )
+                attachments.append({
+                    "file_id": message_file.id,
+                    "tools": [
+                        {"type": "file_search"},
+                        {"type": "code_interpreter"},
+                    ],
+                })
+        return attachments
 
-        content = [{"type": "text", "text": user_message}]
-
+    def _prepare_content(self, message, image_urls=None):
+        """Utility method to prepare message content."""
+        content = [{"type": "text", "text": message}]
         if image_urls:
-            for url in image_urls:
-                content.append(
-                    {"type": "image_url", "image_url": {"url": url}})
+            content.extend(
+                {"type": "image_url", "image_url": {"url": url}}
+                for url in image_urls
+            )
+        return content
 
-        thread = self.client.beta.threads.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": content,
-                    "attachments": attachments,
-                }
-            ]
+    def _handle_run(self, thread_id, run):
+        """Common method to handle run status and responses."""
+        while True:
+            run_status = self.client.beta.threads.runs.retrieve(
+                thread_id=thread_id, run_id=run.id
+            )
+
+            if run_status.status == "completed":
+                logger.info("Run completed successfully.")
+                messages = list(
+                    self.client.beta.threads.messages.list(
+                        thread_id=thread_id, run_id=run.id
+                    )
+                )
+                return messages
+            elif run_status.status == "requires_action":
+                logger.info(
+                    "Run requires action. Processing required tool calls...")
+                self.call_required_functions(
+                    run=run,
+                    required_actions=run_status.required_action.submit_tool_outputs.model_dump(),
+                    thread_id=thread_id
+                )
+            elif run_status.status == "failed":
+                logger.error(f"Run failed: {run_status.last_error.code}")
+                if run_status.last_error.code == 'rate_limit_exceeded':
+                    error_msg = "Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
+                    self.client.beta.threads.messages.create(
+                        thread_id=thread_id,
+                        role="assistant",
+                        content=error_msg
+                    )
+                    return error_msg
+                raise RuntimeError("The assistant run has failed.")
+            else:
+                logger.info(
+                    "Run is in progress. Waiting for the next update...")
+                time.sleep(5)
+
+    def create_thread(self, user_message, file_paths=None, image_urls=None):
+        """Creates a thread and optionally attaches a file to the user's message."""
+        attachments = self._prepare_attachments(file_paths)
+        content = self._prepare_content(user_message, image_urls)
+
+        return self.client.beta.threads.create(
+            messages=[{
+                "role": "user",
+                "content": content,
+                "attachments": attachments,
+            }]
         )
 
-        return thread
+    def add_message_to_thread(self, role, content, discord_thread_id, file_paths=None, image_urls=None):
+        """Adds a new message to an existing thread."""
+        if discord_thread_id not in self.threads:
+            raise ValueError(
+                f"No thread found for Discord thread ID: {discord_thread_id}")
+
+        thread_id = self.threads[discord_thread_id]
+        attachments = self._prepare_attachments(file_paths)
+        content = self._prepare_content(content, image_urls)
+
+        self.client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role=role,
+            content=content,
+            attachments=attachments
+        )
 
     def call_required_functions(self, run, required_actions: dict, thread_id):
         """
@@ -214,46 +273,12 @@ class DataScienceAssistant:
             )
 
     def create_and_run_thread(self, thread):
-        """
-        Creates a run for the thread, processes required actions, and retrieves the response.
-        """
+        """Creates a run for the thread and processes it."""
         run = self.client.beta.threads.runs.create(
-            thread_id=thread.id, assistant_id=self.assistant.id
+            thread_id=thread.id,
+            assistant_id=self.assistant.id
         )
-
-        while True:
-            run_status = self.client.beta.threads.runs.retrieve(
-                thread_id=thread.id, run_id=run.id
-            )
-            if run_status.status == "completed":
-                logger.info("Run completed successfully.")
-                messages = self.client.beta.threads.messages.list(
-                    thread_id=thread.id, run_id=run.id
-                )
-                return list(messages)
-            elif run_status.status == "requires_action":
-                logger.info(
-                    "Run requires action. Processing required tool calls...")
-                self.call_required_functions(
-                    run=run,
-                    required_actions=run_status.required_action.submit_tool_outputs.model_dump(),
-                    thread_id=thread.id
-                )
-            elif run_status.status == "failed":
-                logger.error(f"Run failed: {run_status.last_error.code}")
-                if run_status.last_error.code == 'rate_limit_exceeded':
-                    self.client.beta.threads.messages.create(
-                        thread_id=thread.id,
-                        role="assistant",
-                        content="Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
-                    )
-                    return "Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
-                else:
-                    raise RuntimeError("The assistant run has failed.")
-            else:
-                logger.info(
-                    "Run is in progress. Waiting for the next update...")
-                time.sleep(5)
+        return self._handle_run(thread.id, run)
 
     def extract_response(self, messages):
         """Processes and extracts the assistant's response."""
@@ -273,87 +298,24 @@ class DataScienceAssistant:
 
         return message_content.value, list(citations)
 
-    def add_message_to_thread(self, role, content, discord_thread_id, file_paths=None, image_urls=None):
-        """Adds a new message to an existing thread."""
-        if discord_thread_id not in self.threads:
-            raise ValueError(
-                f"No thread found for Discord thread ID: {discord_thread_id}")
-
-        thread_id = self.threads[discord_thread_id]
-        attachments = []
-        if file_paths:
-            for path in file_paths:
-                message_file = self.upload_file(path)
-                attachments.append(
-                    {
-                        "file_id": message_file.id,
-                        "tools": [
-                            {"type": "file_search"},
-                            {"type": "code_interpreter"},
-                        ],
-                    }
-                )
-
-        content = [{"type": "text", "text": content}]
-
-        if image_urls:
-            for url in image_urls:
-                content.append(
-                    {"type": "image_url", "image_url": {"url": url}})
-
-        self.client.beta.threads.messages.create(
-            thread_id=thread_id, role=role, content=content, attachments=attachments
-        )
-
     def continue_conversation(self, new_message, discord_thread_id, file_paths=None, image_urls=None):
-        """Adds a new user message to the thread, creates a run, and retrieves the response."""
+        """Adds a new user message to the thread and processes it."""
         self.add_message_to_thread(
-            role="user", content=new_message, discord_thread_id=discord_thread_id, file_paths=file_paths, image_urls=image_urls)
-
-        thread_id = self.threads[discord_thread_id]
-
-        run = self.client.beta.threads.runs.create(
-            thread_id=thread_id, assistant_id=self.assistant.id
+            role="user",
+            content=new_message,
+            discord_thread_id=discord_thread_id,
+            file_paths=file_paths,
+            image_urls=image_urls
         )
 
-        while True:
-            run_status = self.client.beta.threads.runs.retrieve(
-                thread_id=thread_id, run_id=run.id
-            )
+        thread_id = self.threads[discord_thread_id]
+        run = self.client.beta.threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=self.assistant.id
+        )
 
-            if run_status.status == "completed":
-                logger.info("Run completed successfully.")
-                messages = list(
-                    self.client.beta.threads.messages.list(
-                        thread_id=thread_id, run_id=run.id
-                    )
-                )
-
-                return self.extract_response(messages)
-            elif run_status.status == "requires_action":
-                logger.info(
-                    "Run requires action. Processing required tool calls...")
-                self.call_required_functions(
-                    run=run,
-                    required_actions=run_status.required_action.submit_tool_outputs.model_dump(),
-                    thread_id=thread_id
-                )
-            elif run_status.status == "failed":
-                logger.error(f"Run failed: {run_status.last_error.code}")
-                logger.error(f"Run failed: {run_status.last_error.message}")
-                if run_status.last_error.code == 'rate_limit_exceeded':
-                    self.client.beta.threads.messages.create(
-                        thread_id=thread_id,
-                        role="assistant",
-                        content="Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
-                    )
-                    return "Your GitHub link is too general. Please specify a specific folder in your GitHub repository.", None
-                else:
-                    raise RuntimeError("The assistant run has failed.")
-            else:
-                logger.info(
-                    "Run is in progress. Waiting for the next update...")
-                time.sleep(5)
+        messages = self._handle_run(thread_id, run)
+        return self.extract_response(messages)
 
 
 if __name__ == "__main__":
