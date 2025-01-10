@@ -7,6 +7,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def get_ta_role_for_forum(forum_id: int) -> str:
+    """Get TA role ID for a specific forum channel"""
+    from .extensions.questions import QUESTION_CENTERS
+    for center in QUESTION_CENTERS.values():
+        if center["forum_id"] == forum_id:
+            return str(center["ta_id"])
+    return None
+
+
 def extract_owner(text: str) -> str:
     """
     Extracts GitHub repository owner from a thread post

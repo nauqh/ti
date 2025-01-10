@@ -6,7 +6,7 @@ from loguru import logger
 QUESTION_CENTERS = {
     "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773, "staff_channel": 1237424754739253279},
     "FSW": {"forum_id": 1326478786274922568, "ta_id": 912553106124972083},
-    # "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046042656981022},
+    # "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046253609508945},
 }
 
 plugin = lightbulb.Plugin("Q&A", "🙋‍♂️ Question Center")
@@ -34,7 +34,8 @@ async def handle_post_creation(post: hikari.GuildThreadChannel, message: hikari.
         thread = bot.create_thread(
             message=message.content,
             images=images,
-            files=files
+            files=files,
+            forum_id=post.parent_id  # Pass the forum ID
         )
         bot.posts[post.id] = thread.id
         logger.info(f"Created thread for post: {post.name}")

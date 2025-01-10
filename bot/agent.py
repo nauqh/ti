@@ -1,4 +1,4 @@
-from .tools import fetch_all_code_from_repo, extract_owner, extract_repo
+from .tools import fetch_all_code_from_repo, extract_owner, extract_repo, get_ta_role_for_forum
 from openai import OpenAI
 import requests
 import tempfile
@@ -104,6 +104,23 @@ class DataScienceAssistant:
                         },
                     },
                 },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_ta_role_for_forum",
+                        "description": "Gets the TA role ID for a specific forum channel",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "forum_id": {
+                                    "type": "integer",
+                                    "description": "The forum channel ID to get TA role for"
+                                }
+                            },
+                            "required": ["forum_id"]
+                        }
+                    }
+                }
             ],
             tool_resources={
                 "file_search": {"vector_store_ids": [self.vector_store.id]}
@@ -202,18 +219,24 @@ class DataScienceAssistant:
                     "Run is in progress. Waiting for the next update...")
                 time.sleep(5)
 
-    def create_thread(self, message, files=None, images=None):
+    def create_thread(self, message, files=None, images=None, forum_id=None):
         """Creates an OpenAI thread from a Discord post."""
         attachments = self._prepare_attachments(files)
         content = self._prepare_content(message, images)
 
-        return self.client.beta.threads.create(
-            messages=[{
-                "role": "user",
-                "content": content,
-                "attachments": attachments,
-            }]
-        )
+        # Add forum_id as system message if provided
+        messages = [{
+            "role": "user",
+            "content": content,
+            "attachments": attachments,
+        }]
+        if forum_id:
+            messages.insert(0, {
+                "role": "assistant",
+                "content": f"Current forum_id: {forum_id}"
+            })
+
+        return self.client.beta.threads.create(messages=messages)
 
     def add_message(self, role, content, post_id, files=None, images=None):
         """Adds a message to an OpenAI thread."""
@@ -257,6 +280,9 @@ class DataScienceAssistant:
                 elif func_name == "extract_repo":
                     text = args["text"]
                     output = extract_repo(text)
+                elif func_name == "get_ta_role_for_forum":
+                    forum_id = args["forum_id"]
+                    output = get_ta_role_for_forum(forum_id)
                 else:
                     raise ValueError(f"Unknown function: {func_name}")
 
@@ -279,7 +305,8 @@ class DataScienceAssistant:
         """Creates a run for the thread and processes it."""
         run = self.client.beta.threads.runs.create(
             thread_id=thread.id,
-            assistant_id=self.assistant.id
+            assistant_id=self.assistant.id,
+            tool_choice="required"
         )
         return self._handle_run(thread.id, run)
 
