@@ -273,16 +273,36 @@ class DataScienceAssistant:
 
         return message_content.value, list(citations)
 
-    def add_message_to_thread(self, role, content, discord_thread_id):
+    def add_message_to_thread(self, role, content, discord_thread_id, file_paths=None, image_urls=None):
         """Adds a new message to an existing thread."""
         if discord_thread_id not in self.threads:
             raise ValueError(
                 f"No thread found for Discord thread ID: {discord_thread_id}")
 
         thread_id = self.threads[discord_thread_id]
+        attachments = []
+        if file_paths:
+            for path in file_paths:
+                message_file = self.upload_file(path)
+                attachments.append(
+                    {
+                        "file_id": message_file.id,
+                        "tools": [
+                            {"type": "file_search"},
+                            {"type": "code_interpreter"},
+                        ],
+                    }
+                )
+
+        content = [{"type": "text", "text": content}]
+
+        if image_urls:
+            for url in image_urls:
+                content.append(
+                    {"type": "image_url", "image_url": {"url": url}})
 
         self.client.beta.threads.messages.create(
-            thread_id=thread_id, role=role, content=content
+            thread_id=thread_id, role=role, content=content, attachments=attachments
         )
 
     def continue_conversation(self, new_message, discord_thread_id):
