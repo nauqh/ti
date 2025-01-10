@@ -8,11 +8,14 @@ import time
 
 
 class DataScienceAssistant:
-    def __init__(self):
+    def __init__(self, file_paths=None):
         self.client = OpenAI()
-        self.vector_store = None
-        self.assistant = None
-        self.threads = {}
+        self.posts = {}  # Maps Discord post IDs to OpenAI thread IDs
+
+        self.create_vector_store(file_paths)
+        with open("instructions.txt", "r") as file:
+            instructions = file.read()
+        self.create_assistant(instructions)
 
     def create_vector_store(self, file_paths):
         """Creates a vector store and uploads files to it."""
@@ -199,10 +202,10 @@ class DataScienceAssistant:
                     "Run is in progress. Waiting for the next update...")
                 time.sleep(5)
 
-    def create_thread(self, user_message, file_paths=None, image_urls=None):
-        """Creates a thread and optionally attaches a file to the user's message."""
-        attachments = self._prepare_attachments(file_paths)
-        content = self._prepare_content(user_message, image_urls)
+    def create_thread(self, message, files=None, images=None):
+        """Creates an OpenAI thread from a Discord post."""
+        attachments = self._prepare_attachments(files)
+        content = self._prepare_content(message, images)
 
         return self.client.beta.threads.create(
             messages=[{
@@ -212,15 +215,15 @@ class DataScienceAssistant:
             }]
         )
 
-    def add_message_to_thread(self, role, content, discord_thread_id, file_paths=None, image_urls=None):
-        """Adds a new message to an existing thread."""
-        if discord_thread_id not in self.threads:
+    def add_message(self, role, content, post_id, files=None, images=None):
+        """Adds a message to an OpenAI thread."""
+        if post_id not in self.posts:
             raise ValueError(
-                f"No thread found for Discord thread ID: {discord_thread_id}")
+                f"No thread found for post: {post_id}")
 
-        thread_id = self.threads[discord_thread_id]
-        attachments = self._prepare_attachments(file_paths)
-        content = self._prepare_content(content, image_urls)
+        thread_id = self.posts[post_id]
+        attachments = self._prepare_attachments(files)
+        content = self._prepare_content(content, images)
 
         self.client.beta.threads.messages.create(
             thread_id=thread_id,
@@ -298,17 +301,17 @@ class DataScienceAssistant:
 
         return message_content.value, list(citations)
 
-    def continue_conversation(self, new_message, discord_thread_id, file_paths=None, image_urls=None):
-        """Adds a new user message to the thread and processes it."""
-        self.add_message_to_thread(
+    def continue_thread(self, message, post_id, files=None, images=None):
+        """Continues conversation in an OpenAI thread."""
+        self.add_message(
             role="user",
-            content=new_message,
-            discord_thread_id=discord_thread_id,
-            file_paths=file_paths,
-            image_urls=image_urls
+            content=message,
+            post_id=post_id,
+            files=files,
+            images=images
         )
 
-        thread_id = self.threads[discord_thread_id]
+        thread_id = self.posts[post_id]
         run = self.client.beta.threads.runs.create(
             thread_id=thread_id,
             assistant_id=self.assistant.id
@@ -319,24 +322,34 @@ class DataScienceAssistant:
 
 
 if __name__ == "__main__":
-    bot = DataScienceAssistant()
-    with open("instructions.txt", "r") as file:
-        instructions = file.read()
-    bot.create_vector_store(["docs/instructions.pdf", "docs/user_manual.pdf"])
-    bot.create_assistant(instructions=instructions)
-    thread = bot.create_thread(
-        "What does my code do? https://github.com/nauqh/csautograde"
+    # Initialize the assistant with documentation files
+    assistant = DataScienceAssistant([
+        "docs/instructions.pdf",
+        "docs/user_manual.pdf"
+    ])
+
+    # Create a new thread for a post
+    openai_thread = assistant.create_thread(
+        message="Can you help me understand how to use pandas for data analysis?",
+        images=[
+            "https://jalammar.github.io/images/pandas-intro/0%20excel-to-pandas.png"],
     )
-    messages = bot.create_and_run_thread(thread)
-    response, citations = bot.extract_response(messages)
+
+    # Run the initial conversation
+    messages = assistant.create_and_run_thread(openai_thread)
+    response, citations = assistant.extract_response(messages)
     print(response)
     if citations:
-        logger.info(f"Referenced files: {', '.join(citations)}")
+        print("Citations:", citations)
 
-    # Continuing the conversation
-    # new_message = "Làm sao để reschedule mentor session?"
-    # print("\nNew Message:", new_message)
-    # response, citations = bot.continue_conversation(new_message)
-    # print(response)
-    # if citations:
-    #     logger.info(f"Referenced files: {', '.join(citations)}")
+    # Continue the conversation with a follow-up question
+    post_id = 123456789  # Example Discord post ID
+    assistant.posts[post_id] = openai_thread.id
+
+    follow_up_response, follow_up_citations = assistant.continue_thread(
+        "How can I handle missing values in my dataset?",
+        post_id
+    )
+    print(follow_up_response)
+    if follow_up_citations:
+        print("Citations:", follow_up_citations)

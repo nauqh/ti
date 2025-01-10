@@ -18,31 +18,30 @@ def load(bot: lightbulb.BotApp) -> None:
 
 @plugin.listener(hikari.StartingEvent)
 async def on_starting(event: hikari.StartingEvent) -> None:
-    bot = DataScienceAssistant()
-
-    with open("instructions.txt", "r") as file:
-        instructions = file.read()
-    bot.create_vector_store(["docs/instructions.pdf", "docs/user_manual.pdf"])
-    bot.create_assistant(instructions=instructions)
+    bot = DataScienceAssistant(
+        ["docs/instructions.pdf", "docs/user_manual.pdf"])
     plugin.app.d.bot = bot
 
 
-async def handle_thread_creation(thread: hikari.GuildThreadChannel, message: hikari.Message) -> None:
+async def handle_post_creation(post: hikari.GuildThreadChannel, message: hikari.Message) -> None:
     images = [
         att.url for att in message.attachments if att.media_type.startswith("image")]
-    attachments = [
+    files = [
         att.url for att in message.attachments if not att.media_type.startswith("image")]
 
     try:
         bot = plugin.app.d.bot
-        ds_thread = bot.create_thread(
-            user_message=message.content, image_urls=images, file_paths=attachments)
-        bot.threads[thread.id] = ds_thread.id
-        logger.info(f"Added thread {thread.name} to the bot's memory.")
+        thread = bot.create_thread(
+            message=message.content,
+            images=images,
+            files=files
+        )
+        bot.posts[post.id] = thread.id
+        logger.info(f"Created thread for post: {post.name}")
 
-        messages = bot.create_and_run_thread(thread=ds_thread)
+        messages = bot.create_and_run_thread(thread)
         response, citations = bot.extract_response(messages)
-        await thread.send(response)
+        await post.send(response)
 
         if citations:
             logger.info(f"Referenced files: {', '.join(citations)}")
@@ -53,36 +52,40 @@ async def handle_thread_creation(thread: hikari.GuildThreadChannel, message: hik
 
 @plugin.listener(hikari.GuildThreadCreateEvent)
 async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
-    thread: hikari.GuildThreadChannel = await event.fetch_channel()
+    post = await event.fetch_channel()
 
-    if thread.parent_id in [guild["forum_id"] for guild in QUESTION_CENTERS.values()]:
-        messages = await thread.fetch_history()
+    if post.parent_id in [guild["forum_id"] for guild in QUESTION_CENTERS.values()]:
+        messages = await post.fetch_history()
         if messages:
-            await handle_thread_creation(thread, messages[0])
+            await handle_post_creation(post, messages[0])
     else:
         print(
-            f"Thread {thread.name} does not belong to the question center category.")
+            f"Thread {post.name} does not belong to the question center category.")
 
 
-async def handle_follow_up_message(thread: hikari.GuildThreadChannel, message: hikari.Message) -> None:
+async def handle_follow_up(post: hikari.GuildThreadChannel, message: hikari.Message) -> None:
     bot = plugin.app.d.bot
     images = [
         att.url for att in message.attachments if att.media_type.startswith("image")]
-    attachments = [
+    files = [
         att.url for att in message.attachments if not att.media_type.startswith("image")]
-    response, citations = bot.continue_conversation(
-        message.content, thread.id, image_urls=images, file_paths=attachments)
+    response, citations = bot.continue_thread(
+        message.content,
+        post.id,
+        files=files,
+        images=images
+    )
 
     # Double check if bot is the author of the last message (server causes bot to respond twice)
-    history = await thread.fetch_history()
+    history = await post.fetch_history()
     if history and history[0].author.id == plugin.app.get_me().id:
         return
-    await thread.send(response)
+    await post.send(response)
 
     if citations:
         logger.info(f"Referenced files: {', '.join(citations)}")
 
-    feedback_message = await thread.send(
+    feedback_message = await post.send(
         f"{message.author.mention} Thanks for your question! How would you rate my response from 1 to 5?\n Your feedback is greatly appreciated! 😊"
     )
 
@@ -104,7 +107,7 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
         if len(await thread.fetch_history()) <= 1:
             return
         if len([msg for msg in await thread.fetch_history() if msg.author.id == plugin.app.get_me().id]) == 1:
-            await handle_follow_up_message(thread, message)
+            await handle_follow_up(thread, message)
         elif len([msg for msg in await thread.fetch_history() if msg.author.id == plugin.app.get_me().id]) >= 2:
             logger.info(f"2 responses found, stop follow-up {thread.name}")
     except Exception as e:
