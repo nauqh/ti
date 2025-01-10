@@ -66,7 +66,12 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
 
 async def handle_follow_up_message(thread: hikari.GuildThreadChannel, message: hikari.Message) -> None:
     bot = plugin.app.d.bot
-    response, citations = bot.continue_conversation(message.content, thread.id)
+    images = [
+        att.url for att in message.attachments if att.media_type.startswith("image")]
+    attachments = [
+        att.url for att in message.attachments if not att.media_type.startswith("image")]
+    response, citations = bot.continue_conversation(
+        message.content, thread.id, image_urls=images, file_paths=attachments)
 
     # Double check if bot is the author of the last message (server causes bot to respond twice)
     history = await thread.fetch_history()

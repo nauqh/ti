@@ -305,10 +305,10 @@ class DataScienceAssistant:
             thread_id=thread_id, role=role, content=content, attachments=attachments
         )
 
-    def continue_conversation(self, new_message, discord_thread_id):
+    def continue_conversation(self, new_message, discord_thread_id, file_paths=None, image_urls=None):
         """Adds a new user message to the thread, creates a run, and retrieves the response."""
         self.add_message_to_thread(
-            role="user", content=new_message, discord_thread_id=discord_thread_id)
+            role="user", content=new_message, discord_thread_id=discord_thread_id, file_paths=file_paths, image_urls=image_urls)
 
         thread_id = self.threads[discord_thread_id]
 
