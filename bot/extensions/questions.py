@@ -105,6 +105,13 @@ async def on_message_create(event: hikari.GuildMessageCreateEvent) -> None:
         thread: hikari.GuildThreadChannel = await message.fetch_channel()
         if thread.parent_id not in [guild["forum_id"] for guild in QUESTION_CENTERS.values()]:
             return
+
+        for center in QUESTION_CENTERS.values():
+            if center['ta_id'] in message.member.role_ids:
+                logger.info(
+                    f"TA message detected in {thread.name}, skipping response")
+                return
+
         if len(await thread.fetch_history()) <= 1:
             return
         if len([msg for msg in await thread.fetch_history() if msg.author.id == plugin.app.get_me().id]) == 1:
