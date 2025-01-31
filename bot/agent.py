@@ -1,4 +1,4 @@
-from .tools import fetch_all_code_from_repo, extract_owner, extract_repo, get_ta_role_for_forum
+from .tools import fetch_all_code_from_repo, extract_owner, extract_repo, get_ta_role_for_forum, search_youtube
 from openai import OpenAI
 import requests
 import tempfile
@@ -125,7 +125,24 @@ class DataScienceAssistant:
                             "required": ["forum_id"]
                         }
                     }
-                }
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "search_youtube",
+                        "description": "Searches for relevant YouTube videos based on a query",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "query": {
+                                    "type": "string",
+                                    "description": "The search query for finding relevant YouTube videos",
+                                }
+                            },
+                            "required": ["query"],
+                        },
+                    },
+                },
             ],
             tool_resources={
                 "file_search": {"vector_store_ids": [self.vector_store.id]}
@@ -289,6 +306,9 @@ class DataScienceAssistant:
                 elif func_name == "get_ta_role_for_forum":
                     forum_id = args["forum_id"]
                     output = get_ta_role_for_forum(forum_id)
+                elif func_name == "search_youtube":
+                    query = args["query"]
+                    output = search_youtube(query)
                 else:
                     raise ValueError(f"Unknown function: {func_name}")
 

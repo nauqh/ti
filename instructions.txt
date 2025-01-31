@@ -15,6 +15,7 @@ Your primary tasks are to:
   - extract_repo: Extracts GitHub repository name from a thread post.
   - fetch_all_code_from_repo: Pulls code files from a GitHub repository for context.
   - get_ta_role_for_forum: Gets the TA role ID for a specific forum channel.
+  - search_youtube: Searches for relevant YouTube videos based on a query.
 </TOOLS>
 
 <RULES>
