@@ -5,6 +5,7 @@ import tempfile
 from loguru import logger
 import json
 import time
+import os
 
 
 class DataScienceAssistant:
@@ -22,11 +23,15 @@ class DataScienceAssistant:
         self.vector_store = self.client.beta.vector_stores.create(
             name="DS Course")
 
-        file_streams = [open(path, "rb") for path in file_paths]
-        logger.info("Adding files to vector store")
+        file_streams = []
+        for path in file_paths:
+            logger.info(f"Adding file to vector store: {path}")
+            file_streams.append(open(path, "rb"))
         self.client.beta.vector_stores.file_batches.upload_and_poll(
             vector_store_id=self.vector_store.id, files=file_streams
         )
+
+        logger.info("All files uploaded successfully.")
 
         for file_stream in file_streams:
             file_stream.close()
@@ -144,6 +149,7 @@ class DataScienceAssistant:
                     file_path = temp.name
 
             with open(file_path, "rb") as file:
+                logger.info(f"Uploading file: {file_path}")
                 return self.client.files.create(file=file, purpose="assistants")
         except requests.RequestException as e:
             print(f"Error downloading the file from URL: {e}")
@@ -349,34 +355,53 @@ class DataScienceAssistant:
 
 
 if __name__ == "__main__":
-    # Initialize the assistant with documentation files
+    # Initialize the assistant with course materials
     assistant = DataScienceAssistant([
-        "docs/instructions.pdf",
-        "docs/user_manual.pdf"
+        f"docs/{filename}" for filename in os.listdir('docs')
     ])
 
-    # Create a new thread for a post
-    openai_thread = assistant.create_thread(
-        message="Can you help me understand how to use pandas for data analysis?",
-        images=[
-            "https://jalammar.github.io/images/pandas-intro/0%20excel-to-pandas.png"],
+    # Example 1: Create a thread with a coding question
+    coding_thread = assistant.create_thread(
+        message="I'm having trouble with my GitHub repository at https://github.com/nauqh/csautograde. Can you help me analyze the code in the 'csautograde' folder?",
     )
 
-    # Run the initial conversation
-    messages = assistant.create_and_run_thread(openai_thread)
+    # Run the conversation and handle the response
+    messages = assistant.create_and_run_thread(coding_thread)
     response, citations = assistant.extract_response(messages)
-    print(response)
+    print("Example 1 - Code Analysis Response:", response)
     if citations:
         print("Citations:", citations)
 
-    # Continue the conversation with a follow-up question
-    post_id = 123456789  # Example Discord post ID
-    assistant.posts[post_id] = openai_thread.id
-
-    follow_up_response, follow_up_citations = assistant.continue_thread(
-        "How can I handle missing values in my dataset?",
-        post_id
+    # Example 2: Create a thread with an image for visualization help
+    viz_thread = assistant.create_thread(
+        message="Can you explain what's wrong with my matplotlib visualization?",
+        images=[
+            "https://miro.medium.com/v2/resize:fit:700/1*F9gf07Uzo9RyLdg52yDeNQ.png"],
+        forum_id=987654321  # Example forum channel ID
     )
-    print(follow_up_response)
-    if follow_up_citations:
-        print("Citations:", follow_up_citations)
+
+    # Store the thread ID for later reference
+    post_id = 123456789
+    assistant.posts[post_id] = viz_thread.id
+
+    # Run the conversation
+    messages = assistant.create_and_run_thread(viz_thread)
+    response, citations = assistant.extract_response(messages)
+    print("\nExample 2 - Visualization Help Response:", response)
+
+    # Example 3: Continue the conversation with follow-up questions
+    follow_up_responses = [
+        "How can I fix the axis labels?",
+        "Can you show me how to add a legend?",
+        "What's the best way to save this plot in high resolution?"
+    ]
+
+    for question in follow_up_responses:
+        print(f"\nFollow-up question: {question}")
+        response, citations = assistant.continue_thread(
+            message=question,
+            post_id=post_id
+        )
+        print("Assistant response:", response)
+        if citations:
+            print("Citations:", citations)

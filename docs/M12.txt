@@ -1,4 +1,4 @@
-Advanced SQL Exam
+M1.2: Advanced SQL Exam
 
 Question 1. **Which of the following statements is true about a left join in SQL?**
 

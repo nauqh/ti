@@ -2,6 +2,7 @@ import hikari
 import lightbulb
 from ..agent import DataScienceAssistant
 from loguru import logger
+import os
 
 QUESTION_CENTERS = {
     "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773, "staff_channel": 1237424754739253279},
@@ -19,7 +20,7 @@ def load(bot: lightbulb.BotApp) -> None:
 @plugin.listener(hikari.StartingEvent)
 async def on_starting(event: hikari.StartingEvent) -> None:
     bot = DataScienceAssistant(
-        ["docs/instructions.pdf", "docs/user_manual.pdf"])
+        [f"docs/{filename}" for filename in os.listdir('docs')])
     plugin.app.d.bot = bot
 
 
