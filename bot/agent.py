@@ -312,6 +312,7 @@ class DataScienceAssistant:
         run = self.client.beta.threads.runs.create(
             thread_id=thread.id,
             assistant_id=self.assistant.id,
+            # Force the assistant to use the required tools to get ta_role_id
             tool_choice="required"
         )
         return self._handle_run(thread.id, run)
