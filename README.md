@@ -124,7 +124,7 @@ bot/
 
 Workflow
 ```mermaid
-graph LR
+graph TD
     A[On new Message] --> B[Check if Thread Exists]
     B -->|Yes| C[Add Message to Thread]
     B -->|No| D[Create Thread]
