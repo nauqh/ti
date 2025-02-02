@@ -122,6 +122,36 @@ bot/
 - Code analysis tools
 - Documentation search
 
+Workflow
+```mermaid
+graph LR
+    A[On new Message] --> B[Check if Thread Exists]
+    B -->|Yes| C[Add Message to Thread]
+    B -->|No| D[Create Thread]
+    D --> C
+    C --> E[Create Run]
+    E --> F{Run Status Check}
+    F -->|completed| G[Retrieve Messages from Thread]
+    F -->|requires_action| H[Process Required Tool Calls]
+    H --> I{Tool Type}
+    I -->|GitHub| J[Fetch Repository Code]
+    I -->|YouTube| K[Search Videos]
+    I -->|Document| L[Send Doc Content]
+    J --> E
+    K --> E
+    L --> E
+    F -->|failed| M[Log Error and Exit]
+
+    G --> N[Extract Assistant's Response]
+    N --> O[Check Citations]
+    O -->|Yes| P[Add Referenced Files]
+    O -->|No| Q[Display Response to User]
+    P --> Q
+    Q --> R{Continue Conversation?}
+    R -->|Yes| C
+    R -->|No| S[End]
+```
+
 ## Installation
 
 1. Clone and setup:
