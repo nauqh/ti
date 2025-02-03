@@ -151,9 +151,7 @@ graph TD
     O -->|Yes| P(Add Referenced Files)
     O -->|No| Q(Display Response to User)
     P --> Q
-    Q --> R{Continue Conversation?}
-    R -->|Yes| C
-    R -->|No| S(((End)))
+    Q --> S(((End)))
 ```
 
 ## Installation
