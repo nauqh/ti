@@ -135,16 +135,17 @@ graph TD
     B -->|No| D(Create Thread)
     D --> C
     C --> E(Create Run)
-    E --> F{Run Status Check}
+    E --> E'(Process Run)
+    E' --> F{Run Status Check}
     F -->|completed| G(Retrieve Response Messages)
     F -->|requires_action| H(Process Required Tool Calls)
     H --> I{Tool Type}
     I -->|GitHub| J(Fetch Repository Code)
     I -->|YouTube| K(Search Videos)
     I -->|Document| L(Send Doc Content)
-    J --> E
-    K --> E
-    L --> E
+    J --> E'
+    K --> E'
+    L --> E'
     F -->|failed| M(Log Error and Exit)
 
     G --> O{Check Citations}
