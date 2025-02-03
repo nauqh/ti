@@ -89,18 +89,23 @@ T.i is an AI-powered teaching assistant for Coderschool's Discord forums. It com
 
 ## Project Structure
 ```
-bot/
-├── agent.py          # AI assistant core functionality
-│   ├── Vector store management
-│   ├── OpenAI integration
-│   └── Tool implementations
-├── extensions/
-│   └── questions.py  # Discord event handlers
-├── tools.py          # Utility functions
-│   ├── GitHub integration
-│   ├── YouTube search
-│   └── Helper functions
-└── instructions.txt  # Assistant guidelines
+chatbot/
+├── bot/
+│   ├── extensions/
+│   │   └── questions.py    # Discord client implementation
+|   ├── __init__.py
+|   ├── __main__.py
+|   ├── bot.py        
+|   ├── assistant.py        # Core AI assistant implementation
+|   └── tools.py            # Assistant tool definitions
+├── docs/                   # Documents for knowledge retrieval
+├── data/
+│   └── instructions.txt    # Assistant guidelines
+├── .env                    # Environment variables
+├── .gitignore
+├── LICENSE
+├── README.md
+└── requirements.txt
 ```
 
 ## Technical Features
@@ -125,31 +130,31 @@ bot/
 Workflow
 ```mermaid
 graph TD
-    A[On new Message] --> B[Check if Thread Exists]
-    B -->|Yes| C[Add Message to Thread]
-    B -->|No| D[Create Thread]
+    A((On new Message)) --> B(Check if Thread Exists)
+    B -->|Yes| C(Add Message to Thread)
+    B -->|No| D(Create Thread)
     D --> C
-    C --> E[Create Run]
+    C --> E(Create Run)
     E --> F{Run Status Check}
-    F -->|completed| G[Retrieve Messages from Thread]
-    F -->|requires_action| H[Process Required Tool Calls]
+    F -->|completed| G(Retrieve Messages from Thread)
+    F -->|requires_action| H(Process Required Tool Calls)
     H --> I{Tool Type}
-    I -->|GitHub| J[Fetch Repository Code]
-    I -->|YouTube| K[Search Videos]
-    I -->|Document| L[Send Doc Content]
+    I -->|GitHub| J(Fetch Repository Code)
+    I -->|YouTube| K(Search Videos)
+    I -->|Document| L(Send Doc Content)
     J --> E
     K --> E
     L --> E
-    F -->|failed| M[Log Error and Exit]
+    F -->|failed| M(Log Error and Exit)
 
-    G --> N[Extract Assistant's Response]
-    N --> O[Check Citations]
-    O -->|Yes| P[Add Referenced Files]
-    O -->|No| Q[Display Response to User]
+    G --> N(Extract Assistant's Response)
+    N --> O{Check Citations}
+    O -->|Yes| P(Add Referenced Files)
+    O -->|No| Q(Display Response to User)
     P --> Q
     Q --> R{Continue Conversation?}
     R -->|Yes| C
-    R -->|No| S[End]
+    R -->|No| S([End])
 ```
 
 ## Installation
