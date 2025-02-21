@@ -26,7 +26,7 @@ class SubmissionView(miru.View):
 
             # Disable and update the button
             button.disabled = True
-            button.label = f"Accepted by {ctx.author.mention}"
+            button.label = f"Accepted by @{ctx.author.mention}"
             button.style = hikari.ButtonStyle.SECONDARY
 
             # Update the original message with the modified button
