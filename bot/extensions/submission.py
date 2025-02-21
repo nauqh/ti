@@ -26,15 +26,17 @@ class SubmissionView(miru.View):
 
             # Disable and update the button
             button.disabled = True
-            button.label = f"Accepted by @{ctx.author.username}"
+            button.label = f"Accepted by {ctx.author.mention}"
             button.style = hikari.ButtonStyle.SECONDARY
 
-            # Respond to interaction and update message
+            # Update the original message with the modified button
+            await ctx.message.edit(components=self)
+
+            # Respond to interaction
             await ctx.respond(
-                f"Submission accepted by {ctx.author.mention}",
+                "Submission accepted successfully",
                 flags=hikari.MessageFlag.EPHEMERAL
             )
-            await ctx.edit_response(components=self)
 
         except hikari.ForbiddenError:
             await ctx.respond(
