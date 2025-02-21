@@ -6,3 +6,4 @@ requests
 openai
 pyyaml
 loguru
+hikari-miru
