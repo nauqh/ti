@@ -16,7 +16,7 @@ class SubmissionView(miru.View):
         super().__init__(timeout=None)
         self.email = email
 
-    @miru.button(label="Accept Submission", style=hikari.ButtonStyle.SUCCESS)
+    @miru.button(label="Accept", style=hikari.ButtonStyle.SUCCESS)
     async def accept_button(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         try:
             await ctx.author.send(
@@ -26,7 +26,7 @@ class SubmissionView(miru.View):
 
             # Remove the button and update message with text
             await ctx.message.edit(
-                f"{ctx.message.content}\nAccepted by {ctx.author.mention}",
+                f"{ctx.message.content}\n**Accepted by TA {ctx.author.mention}**",
                 components=None
             )
 
