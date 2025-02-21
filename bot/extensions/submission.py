@@ -23,10 +23,19 @@ class SubmissionView(miru.View):
                 f"You have accepted the submission from {self.email}. "
                 f"Please review and grade it as soon as possible."
             )
+
+            # Disable and update the button
+            button.disabled = True
+            button.label = f"Accepted by @{ctx.author.username}"
+            button.style = hikari.ButtonStyle.SECONDARY
+
+            # Respond to interaction and update message
             await ctx.respond(
                 f"Submission accepted by {ctx.author.mention}",
                 flags=hikari.MessageFlag.EPHEMERAL
             )
+            await ctx.edit_response(components=self)
+
         except hikari.ForbiddenError:
             await ctx.respond(
                 "Could not send DM. Please check your privacy settings.",
