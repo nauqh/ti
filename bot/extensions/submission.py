@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-submissions_plugin = lightbulb.Plugin("Submissions", include_datastore=True)
+plugin = lightbulb.Plugin("Submissions", include_datastore=True)
 
 
 class SubmissionView(miru.View):
@@ -64,14 +64,14 @@ async def websocket_client():
                             f"- Urls: https://nauqh.dev"
                         )
 
-                        await submissions_plugin.bot.rest.create_message(
+                        await plugin.bot.rest.create_message(
                             947032992063303730,
                             message,
                             components=view
                         )
-                        submissions_plugin.d.miru.start_view(view)
+                        plugin.d.miru.start_view(view)
 
-                        await submissions_plugin.bot.rest.create_message(
+                        await plugin.bot.rest.create_message(
                             947032992063303730,
                             f"```python\n{content['submission']}\n```"
                         )
@@ -80,11 +80,11 @@ async def websocket_client():
             await asyncio.sleep(5)
 
 
-@submissions_plugin.listener(hikari.StartedEvent)
+@plugin.listener(hikari.StartedEvent)
 async def on_started(event: hikari.StartedEvent) -> None:
-    submissions_plugin.d.miru = miru.Client(submissions_plugin.bot)
+    plugin.d.miru = miru.Client(plugin.bot)
     asyncio.create_task(websocket_client())
 
 
 def load(bot: lightbulb.BotApp) -> None:
-    bot.add_plugin(submissions_plugin)
+    bot.add_plugin(plugin)
