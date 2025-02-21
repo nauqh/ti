@@ -24,13 +24,11 @@ class SubmissionView(miru.View):
                 f"Please review and grade it as soon as possible."
             )
 
-            # Disable and update the button
-            button.disabled = True
-            button.label = f"Accepted by @{ctx.author.mention}"
-            button.style = hikari.ButtonStyle.SECONDARY
-
-            # Update the original message with the modified button
-            await ctx.message.edit(components=self)
+            # Remove the button and update message with text
+            await ctx.message.edit(
+                f"{ctx.message.content}\nAccepted by {ctx.author.mention}",
+                components=None
+            )
 
             # Respond to interaction
             await ctx.respond(
