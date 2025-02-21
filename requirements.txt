@@ -7,3 +7,4 @@ openai
 pyyaml
 loguru
 hikari-miru
+websockets
