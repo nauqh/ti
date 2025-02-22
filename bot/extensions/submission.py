@@ -73,11 +73,6 @@ async def websocket_client():
                         )
                         plugin.d.miru.start_view(view)
 
-                        await plugin.bot.rest.create_message(
-                            947032992063303730,
-                            f"```python\n{content['submission']}\n```"
-                        )
-
         except websockets.ConnectionClosed:
             await asyncio.sleep(5)
 
