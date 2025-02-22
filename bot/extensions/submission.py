@@ -45,6 +45,39 @@ class SubmissionView(miru.View):
             )
 
 
+class HelpRequestView(miru.View):
+    def __init__(self, content: dict) -> None:
+        super().__init__(timeout=None)
+        self.content = content
+
+    @miru.button(label="Help", style=hikari.ButtonStyle.PRIMARY)
+    async def help_button(self, ctx: miru.ViewContext, button: miru.Button) -> None:
+        try:
+            await ctx.author.send(
+                f"Help Request Details:\n"
+                f"- Email: {self.content['email']}\n"
+                f"- Exam ID: {self.content['exam_id']}\n"
+                f"- Question: {self.content['question']}\n"
+                f"- Message: {self.content['message']}"
+            )
+
+            await ctx.message.edit(
+                f"{ctx.message.content}\n**Being helped by {ctx.author.mention}**",
+                components=None
+            )
+
+            await ctx.respond(
+                "Help request accepted",
+                flags=hikari.MessageFlag.EPHEMERAL
+            )
+
+        except hikari.ForbiddenError:
+            await ctx.respond(
+                "Could not send DM. Please check your privacy settings.",
+                flags=hikari.MessageFlag.EPHEMERAL
+            )
+
+
 async def websocket_client():
     """Connect to FastAPI WebSocket and handle submission notifications."""
     uri = "wss://cspyclient.up.railway.app/ws"
@@ -64,6 +97,25 @@ async def websocket_client():
                             f"- Exam: {content['exam_name']}\n"
                             f"- Email: {content['email']}\n"
                             f"- Urls: https://nauqh.dev"
+                        )
+
+                        await plugin.bot.rest.create_message(
+                            947032992063303730,
+                            message,
+                            components=view
+                        )
+                        plugin.d.miru.start_view(view)
+
+                    elif data["type"] == "help_request":
+                        content = data["content"]
+                        view = HelpRequestView(content)
+
+                        message = (
+                            f"@everyone\n**New Help Request**\n"
+                            f"- Email: {content['email']}\n"
+                            f"- Exam ID: {content['exam_id']}\n"
+                            f"- Question: {content['question']}\n"
+                            f"- Message: {content['message']}"
                         )
 
                         await plugin.bot.rest.create_message(
