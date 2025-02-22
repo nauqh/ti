@@ -55,10 +55,10 @@ class HelpRequestView(miru.View):
         try:
             await ctx.author.send(
                 f"Help Request Details:\n"
-                f"- Email: {self.content['email']}\n"
-                f"- Exam ID: {self.content['exam_id']}\n"
-                f"- Question: {self.content['question']}\n"
-                f"- Message: {self.content['message']}"
+                f"- Category: {self.content['category']}\n"
+                f"- Subject: {self.content['subject']}\n"
+                f"- User ID: {self.content['userId']}\n"
+                f"- Description: {self.content['description']}"
             )
 
             await ctx.message.edit(
@@ -112,16 +112,22 @@ async def websocket_client():
 
                         message = (
                             f"@everyone\n**New Help Request**\n"
-                            f"- Email: {content['email']}\n"
-                            f"- Exam ID: {content['exam_id']}\n"
-                            f"- Question: {content['question']}\n"
-                            f"- Message: {content['message']}"
+                            f"- Category: {content['category']}\n"
+                            f"- Subject: {content['subject']}\n"
+                            f"- User ID: {content['userId']}\n"
+                            f"- Description: {content['description']}"
                         )
+
+                        # Create list of attachment URLs
+                        attachments = []
+                        for image_url in content['images']:
+                            attachments.append(image_url)
 
                         await plugin.bot.rest.create_message(
                             947032992063303730,
                             message,
-                            components=view
+                            components=view,
+                            attachments=attachments
                         )
                         plugin.d.miru.start_view(view)
 
