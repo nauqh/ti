@@ -12,16 +12,18 @@ plugin = lightbulb.Plugin("Submissions", include_datastore=True)
 
 
 class SubmissionView(miru.View):
-    def __init__(self, email: str) -> None:
+    def __init__(self, content: dict) -> None:
         super().__init__(timeout=None)
-        self.email = email
+        self.content = content
 
     @miru.button(label="Accept", style=hikari.ButtonStyle.SUCCESS)
     async def accept_button(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         try:
             await ctx.author.send(
-                f"You have accepted the submission from {self.email}. "
-                f"Please review and grade it as soon as possible."
+                f"Grading assignment:\n"
+                f"- Exam: {self.content['exam_name']}\n"
+                f"- Email: {self.content['email']}\n"
+                f"- Urls: https://nauqh.dev"
             )
 
             # Remove the button and update message with text
@@ -55,7 +57,7 @@ async def websocket_client():
 
                     if data["type"] == "submission":
                         content = data["content"]
-                        view = SubmissionView(content['email'])
+                        view = SubmissionView(content)
 
                         message = (
                             f"@everyone\n"
