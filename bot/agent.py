@@ -226,17 +226,17 @@ class DataScienceAssistant:
                     required_actions=run_status.required_action.submit_tool_outputs.model_dump(),
                     thread_id=thread_id
                 )
-            elif run_status.status == "failed":
-                logger.error(f"Run failed: {run_status.last_error.code}")
-                if run_status.last_error.code == 'rate_limit_exceeded':
-                    error_msg = "Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
-                    self.client.beta.threads.messages.create(
-                        thread_id=thread_id,
-                        role="assistant",
-                        content=error_msg
-                    )
-                    return error_msg
-                raise RuntimeError("The assistant run has failed.")
+            # elif run_status.status == "failed":
+            #     logger.error(f"Run failed: {run_status.last_error.code}")
+            #     if run_status.last_error.code == 'rate_limit_exceeded':
+            #         error_msg = "Your GitHub link is too general. Please specify a specific folder in your GitHub repository."
+            #         self.client.beta.threads.messages.create(
+            #             thread_id=thread_id,
+            #             role="assistant",
+            #             content=error_msg
+            #         )
+            #         return error_msg
+            #     raise RuntimeError("The assistant run has failed.")
             else:
                 logger.info(
                     "Run is in progress. Waiting for the next update...")
