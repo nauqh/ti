@@ -8,3 +8,9 @@ pyyaml
 loguru
 hikari-miru
 websockets
+langchain
+langchain-chroma
+langchain-openai
+langchain-text-splitters
+chromadb
+pypdf

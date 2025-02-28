@@ -1,4 +1,4 @@
-from .tools import fetch_all_code_from_repo, extract_owner, extract_repo, get_ta_role_for_forum, search_youtube
+from .tools import fetch_all_code_from_repo, extract_owner, extract_repo, get_ta_role_for_forum, search_youtube, search_db
 from openai import OpenAI
 import requests
 import tempfile
@@ -6,35 +6,133 @@ from loguru import logger
 import json
 import time
 import os
+import shutil
+from langchain_chroma import Chroma
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
+from langchain.schema.document import Document
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 
 
 class DataScienceAssistant:
     def __init__(self, file_paths=None):
         self.client = OpenAI()
         self.posts = {}  # Maps Discord post IDs to OpenAI thread IDs
-
+        
+        self.CHROMA_PATH = "chroma"
+        self.DATA_PATH = "data"  # Default directory for PDF files
         self.create_vector_store(file_paths)
         with open("instructions.txt", "r") as file:
             instructions = file.read()
         self.create_assistant(instructions)
 
     def create_vector_store(self, file_paths):
-        """Creates a vector store and uploads files to it."""
-        self.vector_store = self.client.beta.vector_stores.create(
-            name="DS Course")
-
-        file_streams = []
-        for path in file_paths:
-            logger.info(f"Adding file to vector store: {path}")
-            file_streams.append(open(path, "rb"))
-        self.client.beta.vector_stores.file_batches.upload_and_poll(
-            vector_store_id=self.vector_store.id, files=file_streams
+        """Creates a Chroma vector store and adds documents to it."""
+        # Clear existing database if it exists
+        if os.path.exists(self.CHROMA_PATH):
+            shutil.rmtree(self.CHROMA_PATH)
+            
+        # Initialize the embedding function
+        embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
+        
+        # Initialize Chroma DB
+        self.vector_store = Chroma(
+            persist_directory=self.CHROMA_PATH,
+            embedding_function=embedding_function
         )
+        
+        # Process and add documents if file paths are provided
+        if file_paths:
+            documents = []
+            
+            # Check if any PDF files are in a directory
+            pdf_directories = []
+            non_pdf_files = []
+            
+            for path in file_paths:
+                if os.path.isdir(path):
+                    # Check if directory contains PDF files
+                    if any(f.lower().endswith('.pdf') for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))):
+                        pdf_directories.append(path)
+                elif path.lower().endswith('.pdf'):
+                    # If it's a single PDF file, add its directory
+                    pdf_dir = os.path.dirname(path)
+                    if pdf_dir not in pdf_directories:
+                        pdf_directories.append(pdf_dir)
+                else:
+                    non_pdf_files.append(path)
+            
+            # Load PDFs using PyPDFDirectoryLoader
+            for pdf_dir in pdf_directories:
+                logger.info(f"Loading PDFs from directory: {pdf_dir}")
+                pdf_loader = PyPDFDirectoryLoader(pdf_dir)
+                pdf_documents = pdf_loader.load()
+                documents.extend(pdf_documents)
+                logger.info(f"Loaded {len(pdf_documents)} PDF documents from {pdf_dir}")
+            
+            # Load other non-PDF files
+            for path in non_pdf_files:
+                logger.info(f"Processing non-PDF file for vector store: {path}")
+                try:
+                    with open(path, "r", encoding="utf-8") as file:
+                        content = file.read()
+                        doc = Document(
+                            page_content=content,
+                            metadata={"source": path}
+                        )
+                        documents.append(doc)
+                except UnicodeDecodeError:
+                    logger.warning(f"Could not read {path} as text. Skipping.")
+            
+            if not documents:
+                logger.warning("No documents were loaded. Vector store will be empty.")
+                return
+                
+            # Split documents into chunks
+            logger.info(f"Splitting {len(documents)} documents into chunks")
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=800,
+                chunk_overlap=80,
+                length_function=len,
+                is_separator_regex=False,
+            )
+            chunks = text_splitter.split_documents(documents)
+            
+            # Process chunks and add IDs
+            chunks_with_ids = self._calculate_chunk_ids(chunks)
+            chunk_ids = [chunk.metadata["id"] for chunk in chunks_with_ids]
+            
+            # Add documents to Chroma
+            logger.info(f"Adding {len(chunks_with_ids)} chunks to vector store")
+            self.vector_store.add_documents(chunks_with_ids, ids=chunk_ids)
+            # self.vector_store.persist()
+            
+            logger.info("All documents added successfully to Chroma DB.")
 
-        logger.info("All files uploaded successfully.")
-
-        for file_stream in file_streams:
-            file_stream.close()
+    def _calculate_chunk_ids(self, chunks):
+        """Calculate unique IDs for each chunk, similar to rag2 implementation."""
+        last_page_id = None
+        current_chunk_index = 0
+        
+        for chunk in chunks:
+            source = chunk.metadata.get("source", "unknown")
+            page = chunk.metadata.get("page", 0)
+            current_page_id = f"{source}:{page}"
+            
+            # If the page ID is the same as the last one, increment the index
+            if current_page_id == last_page_id:
+                current_chunk_index += 1
+            else:
+                current_chunk_index = 0
+                
+            # Calculate the chunk ID
+            chunk_id = f"{current_page_id}:{current_chunk_index}"
+            last_page_id = current_page_id
+            
+            # Add ID to the chunk metadata
+            chunk.metadata["id"] = chunk_id
+            
+        return chunks
 
     def create_assistant(self, instructions, model="gpt-4o"):
         """Creates an assistant using the newly created vector store."""
@@ -43,12 +141,13 @@ class DataScienceAssistant:
                 "Vector store must be created before initializing an assistant."
             )
 
+        # Create the assistant without directly attaching the vector store
+        # since we're now using Chroma DB instead of OpenAI's vector store
         self.assistant = self.client.beta.assistants.create(
             name="Data Science Teaching Assistant",
             instructions=instructions,
             model=model,
             tools=[
-                {"type": "file_search"},
                 {"type": "code_interpreter"},
                 {
                     "type": "function",
@@ -72,6 +171,27 @@ class DataScienceAssistant:
                                 },
                             },
                             "required": ["owner", "repo"],
+                        },
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "search_db",
+                        "description": "Search the knowledge base for relevant information.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "query": {
+                                    "type": "string",
+                                    "description": "The search query to find relevant documents in the knowledge base.",
+                                },
+                                "k": {
+                                    "type": "integer",
+                                    "description": "Maximum number of documents to return. Defaults to 5.",
+                                },
+                            },
+                            "required": ["query"],
                         },
                     },
                 },
@@ -144,9 +264,6 @@ class DataScienceAssistant:
                     },
                 },
             ],
-            tool_resources={
-                "file_search": {"vector_store_ids": [self.vector_store.id]}
-            },
         )
 
     def upload_file(self, file_path):
@@ -187,7 +304,6 @@ class DataScienceAssistant:
                 attachments.append({
                     "file_id": message_file.id,
                     "tools": [
-                        {"type": "file_search"},
                         {"type": "code_interpreter"},
                     ],
                 })
@@ -309,6 +425,10 @@ class DataScienceAssistant:
                 elif func_name == "search_youtube":
                     query = args["query"]
                     output = search_youtube(query)
+                elif func_name == "search_db":
+                    query = args["query"]
+                    k = args.get("k", 5)
+                    output = search_db(query, k)
                 else:
                     raise ValueError(f"Unknown function: {func_name}")
 

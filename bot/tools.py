@@ -8,6 +8,8 @@ import requests
 import os
 from loguru import logger
 from dotenv import load_dotenv
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
 
 load_dotenv()
 
@@ -87,35 +89,59 @@ def fetch_all_code_from_repo(owner: str, repo: str, path: str = "") -> str:
 
     return all_code
 
-# NOTE: This function is not used in the current implementation of the bot
-# def search_youtube():
-#     driver = webdriver.Chrome()
 
-#     try:
-#         driver.get("https://www.youtube.com")
-
-#         time.sleep(2)
-
-#         # If there's a "Consent" or "Accept Cookies" button, you might need to click it:
-#         # Example (may vary by region):
-#         # accept_button = driver.find_element(By.XPATH, "//button[@aria-label='Accept the use of cookies and other data']")
-#         # accept_button.click()
-#         # time.sleep(2)
-
-#         search_box = driver.find_element(By.NAME, "search_query")
-
-#         search_box.send_keys("python tutorial")
-#         search_box.send_keys(Keys.ENTER)
-
-#         # Wait for the results page to load
-#         time.sleep(3)
-
-#         video_links = driver.find_elements(By.ID, "video-title")
-
-#         return [link.get_attribute("href") for link in video_links[:5]]
-
-#     finally:
-#         driver.quit()
+def search_db(query: str, k: int = 5) -> str:
+    """
+    Search the Chroma database for documents related to the query.
+    
+    Args:
+        query (str): The search query to find relevant documents
+        k (int, optional): Maximum number of documents to return. Defaults to 5.
+        
+    Returns:
+        str: A formatted string containing the most relevant document excerpts
+        
+    Example:
+        >>> search_db("What are the rules for Monopoly?")
+        'Document 1: From data/monopoly.pdf, page 2: In Monopoly, players start with $1500...'
+    """
+    try:
+        # Initialize the embedding function
+        embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
+        
+        # Initialize Chroma DB
+        CHROMA_PATH = "chroma"
+        if not os.path.exists(CHROMA_PATH):
+            logger.error(f"Chroma DB path {CHROMA_PATH} does not exist")
+            return "Error: The database has not been initialized. Please contact an administrator."
+            
+        db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+        
+        # Search the DB
+        results = db.similarity_search_with_score(query, k=k)
+        
+        if not results:
+            return "No relevant information found in the database."
+            
+        # Format the results
+        formatted_results = []
+        for i, (doc, score) in enumerate(results, 1):
+            source = doc.metadata.get("source", "Unknown source")
+            page = doc.metadata.get("page", "Unknown page")
+            content = doc.page_content.strip()
+            
+            formatted_result = f"Document {i}: From {source}"
+            if page != "Unknown page":
+                formatted_result += f", page {page}"
+            formatted_result += f" (relevance: {score:.2f}):\n{content}\n"
+            
+            formatted_results.append(formatted_result)
+            
+        return "\n\n".join(formatted_results)
+        
+    except Exception as e:
+        logger.error(f"Error searching database: {str(e)}")
+        return f"Error searching database: {str(e)}"
 
 
 def search_youtube(query, max_results=5):
