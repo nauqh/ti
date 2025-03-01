@@ -16,7 +16,13 @@ load_dotenv()
 
 def get_ta_role_for_forum(forum_id: int) -> str:
     """Get TA role ID for a specific forum channel"""
-    from .extensions.questions import QUESTION_CENTERS
+    # from .extensions.questions import QUESTION_CENTERS
+    QUESTION_CENTERS = {
+        "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773, "staff_channel": 1237424754739253279},
+        "FSW": {"forum_id": 1326478786274922568, "ta_id": 912553106124972083},
+        "CS50": {"forum_id": 1343930405702865037, "ta_id": 1233260164233297942},
+        # "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046253609508945},
+    }
     for center in QUESTION_CENTERS.values():
         if center["forum_id"] == forum_id:
             return str(center["ta_id"])
@@ -93,14 +99,14 @@ def fetch_all_code_from_repo(owner: str, repo: str, path: str = "") -> str:
 def search_db(query: str, k: int = 5) -> str:
     """
     Search the Chroma database for documents related to the query.
-    
+
     Args:
         query (str): The search query to find relevant documents
         k (int, optional): Maximum number of documents to return. Defaults to 5.
-        
+
     Returns:
         str: A formatted string containing the most relevant document excerpts
-        
+
     Example:
         >>> search_db("What are the rules for Monopoly?")
         'Document 1: From data/monopoly.pdf, page 2: In Monopoly, players start with $1500...'
@@ -108,37 +114,38 @@ def search_db(query: str, k: int = 5) -> str:
     try:
         # Initialize the embedding function
         embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
-        
+
         # Initialize Chroma DB
         CHROMA_PATH = "chroma"
         if not os.path.exists(CHROMA_PATH):
             logger.error(f"Chroma DB path {CHROMA_PATH} does not exist")
             return "Error: The database has not been initialized. Please contact an administrator."
-            
-        db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
-        
+
+        db = Chroma(persist_directory=CHROMA_PATH,
+                    embedding_function=embedding_function)
+
         # Search the DB
         results = db.similarity_search_with_score(query, k=k)
-        
+
         if not results:
             return "No relevant information found in the database."
-            
+
         # Format the results
         formatted_results = []
         for i, (doc, score) in enumerate(results, 1):
             source = doc.metadata.get("source", "Unknown source")
             page = doc.metadata.get("page", "Unknown page")
             content = doc.page_content.strip()
-            
+
             formatted_result = f"Document {i}: From {source}"
             if page != "Unknown page":
                 formatted_result += f", page {page}"
             formatted_result += f" (relevance: {score:.2f}):\n{content}\n"
-            
+
             formatted_results.append(formatted_result)
-            
+
         return "\n\n".join(formatted_results)
-        
+
     except Exception as e:
         logger.error(f"Error searching database: {str(e)}")
         return f"Error searching database: {str(e)}"
