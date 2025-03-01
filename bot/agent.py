@@ -1,4 +1,12 @@
-from .tools import fetch_all_code_from_repo, extract_owner, extract_repo, get_ta_role_for_forum, search_youtube, search_db
+from .tools import (
+    fetch_all_code_from_repo,
+    extract_owner,
+    extract_repo,
+    get_ta_role_for_forum,
+    search_youtube,
+    search_db
+)
+
 from openai import OpenAI
 import requests
 import tempfile
@@ -18,9 +26,8 @@ class DataScienceAssistant:
     def __init__(self, file_paths=None):
         self.client = OpenAI()
         self.posts = {}  # Maps Discord post IDs to OpenAI thread IDs
-        
+
         self.CHROMA_PATH = "chroma"
-        self.DATA_PATH = "data"  # Default directory for PDF files
         self.create_vector_store(file_paths)
         with open("instructions.txt", "r") as file:
             instructions = file.read()
@@ -31,24 +38,24 @@ class DataScienceAssistant:
         # Clear existing database if it exists
         if os.path.exists(self.CHROMA_PATH):
             shutil.rmtree(self.CHROMA_PATH)
-            
+
         # Initialize the embedding function
         embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
-        
+
         # Initialize Chroma DB
         self.vector_store = Chroma(
             persist_directory=self.CHROMA_PATH,
             embedding_function=embedding_function
         )
-        
+
         # Process and add documents if file paths are provided
         if file_paths:
             documents = []
-            
+
             # Check if any PDF files are in a directory
             pdf_directories = []
             non_pdf_files = []
-            
+
             for path in file_paths:
                 if os.path.isdir(path):
                     # Check if directory contains PDF files
@@ -61,18 +68,20 @@ class DataScienceAssistant:
                         pdf_directories.append(pdf_dir)
                 else:
                     non_pdf_files.append(path)
-            
+
             # Load PDFs using PyPDFDirectoryLoader
             for pdf_dir in pdf_directories:
                 logger.info(f"Loading PDFs from directory: {pdf_dir}")
                 pdf_loader = PyPDFDirectoryLoader(pdf_dir)
                 pdf_documents = pdf_loader.load()
                 documents.extend(pdf_documents)
-                logger.info(f"Loaded {len(pdf_documents)} PDF documents from {pdf_dir}")
-            
+                logger.info(
+                    f"Loaded {len(pdf_documents)} PDF documents from {pdf_dir}")
+
             # Load other non-PDF files
             for path in non_pdf_files:
-                logger.info(f"Processing non-PDF file for vector store: {path}")
+                logger.info(
+                    f"Processing non-PDF file for vector store: {path}")
                 try:
                     with open(path, "r", encoding="utf-8") as file:
                         content = file.read()
@@ -83,11 +92,12 @@ class DataScienceAssistant:
                         documents.append(doc)
                 except UnicodeDecodeError:
                     logger.warning(f"Could not read {path} as text. Skipping.")
-            
+
             if not documents:
-                logger.warning("No documents were loaded. Vector store will be empty.")
+                logger.warning(
+                    "No documents were loaded. Vector store will be empty.")
                 return
-                
+
             # Split documents into chunks
             logger.info(f"Splitting {len(documents)} documents into chunks")
             text_splitter = RecursiveCharacterTextSplitter(
@@ -97,41 +107,42 @@ class DataScienceAssistant:
                 is_separator_regex=False,
             )
             chunks = text_splitter.split_documents(documents)
-            
+
             # Process chunks and add IDs
             chunks_with_ids = self._calculate_chunk_ids(chunks)
             chunk_ids = [chunk.metadata["id"] for chunk in chunks_with_ids]
-            
+
             # Add documents to Chroma
-            logger.info(f"Adding {len(chunks_with_ids)} chunks to vector store")
+            logger.info(
+                f"Adding {len(chunks_with_ids)} chunks to vector store")
             self.vector_store.add_documents(chunks_with_ids, ids=chunk_ids)
             # self.vector_store.persist()
-            
+
             logger.info("All documents added successfully to Chroma DB.")
 
     def _calculate_chunk_ids(self, chunks):
         """Calculate unique IDs for each chunk, similar to rag2 implementation."""
         last_page_id = None
         current_chunk_index = 0
-        
+
         for chunk in chunks:
             source = chunk.metadata.get("source", "unknown")
             page = chunk.metadata.get("page", 0)
             current_page_id = f"{source}:{page}"
-            
+
             # If the page ID is the same as the last one, increment the index
             if current_page_id == last_page_id:
                 current_chunk_index += 1
             else:
                 current_chunk_index = 0
-                
+
             # Calculate the chunk ID
             chunk_id = f"{current_page_id}:{current_chunk_index}"
             last_page_id = current_page_id
-            
+
             # Add ID to the chunk metadata
             chunk.metadata["id"] = chunk_id
-            
+
         return chunks
 
     def create_assistant(self, instructions, model="gpt-4o"):
@@ -141,129 +152,30 @@ class DataScienceAssistant:
                 "Vector store must be created before initializing an assistant."
             )
 
+        # Load tool schemas from JSON file
+        try:
+            # First try relative path based on module location
+            schema_path = os.path.join(os.path.dirname(
+                __file__), "schemas", "tool_schemas.json")
+            if not os.path.exists(schema_path):
+                # Fallback for when running as script
+                schema_path = os.path.join(
+                    "bot", "schemas", "tool_schemas.json")
+
+            with open(schema_path, "r") as f:
+                tool_schemas = json.load(f)
+        except FileNotFoundError as e:
+            logger.error(f"Could not find tool schemas file: {e}")
+            raise ValueError(
+                f"Tool schemas file not found. Make sure {schema_path} exists.") from e
+
         # Create the assistant without directly attaching the vector store
         # since we're now using Chroma DB instead of OpenAI's vector store
         self.assistant = self.client.beta.assistants.create(
             name="Data Science Teaching Assistant",
             instructions=instructions,
             model=model,
-            tools=[
-                {"type": "code_interpreter"},
-                {
-                    "type": "function",
-                    "function": {
-                        "name": "fetch_all_code_from_repo",
-                        "description": "Fetches all code files from a GitHub repository.",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "owner": {
-                                    "type": "string",
-                                    "description": "The owner of the GitHub repository.",
-                                },
-                                "repo": {
-                                    "type": "string",
-                                    "description": "The name of the GitHub repository.",
-                                },
-                                "path": {
-                                    "type": "string",
-                                    "description": "The directory path within the repository to fetch files from. Defaults to the root directory.",
-                                },
-                            },
-                            "required": ["owner", "repo"],
-                        },
-                    },
-                },
-                {
-                    "type": "function",
-                    "function": {
-                        "name": "search_db",
-                        "description": "Search the knowledge base for relevant information.",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "query": {
-                                    "type": "string",
-                                    "description": "The search query to find relevant documents in the knowledge base.",
-                                },
-                                "k": {
-                                    "type": "integer",
-                                    "description": "Maximum number of documents to return. Defaults to 5.",
-                                },
-                            },
-                            "required": ["query"],
-                        },
-                    },
-                },
-                {
-                    "type": "function",
-                    "function": {
-                        "name": "extract_owner",
-                        "description": "Extracts GitHub repository owner from a thread post.",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "text": {
-                                    "type": "string",
-                                    "description": "The input text to extract the repository owner from.",
-                                }
-                            },
-                            "required": ["text"],
-                        },
-                    },
-                },
-                {
-                    "type": "function",
-                    "function": {
-                        "name": "extract_repo",
-                        "description": "Extracts GitHub repository name from a thread post.",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "text": {
-                                    "type": "string",
-                                    "description": "The input text to extract the repository name from.",
-                                }
-                            },
-                            "required": ["text"],
-                        },
-                    },
-                },
-                {
-                    "type": "function",
-                    "function": {
-                        "name": "get_ta_role_for_forum",
-                        "description": "Gets the TA role ID for a specific forum channel",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "forum_id": {
-                                    "type": "integer",
-                                    "description": "The forum channel ID to get TA role for"
-                                }
-                            },
-                            "required": ["forum_id"]
-                        }
-                    }
-                },
-                {
-                    "type": "function",
-                    "function": {
-                        "name": "search_youtube",
-                        "description": "Searches for relevant YouTube videos based on a query",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "query": {
-                                    "type": "string",
-                                    "description": "The search query for finding relevant YouTube videos",
-                                }
-                            },
-                            "required": ["query"],
-                        },
-                    },
-                },
-            ],
+            tools=tool_schemas["tools"],
         )
 
     def upload_file(self, file_path):
@@ -496,53 +408,64 @@ class DataScienceAssistant:
 
 
 if __name__ == "__main__":
-    # Initialize the assistant with course materials
-    assistant = DataScienceAssistant([
-        f"docs/{filename}" for filename in os.listdir('docs')
-    ])
+    try:
+        file_paths = [f"docs/{filename}" for filename in os.listdir('docs')]
+        assistant = DataScienceAssistant(file_paths)
 
-    # Example 1: Create a thread with a coding question
-    coding_thread = assistant.create_thread(
-        message="I'm having trouble with my GitHub repository at https://github.com/nauqh/csautograde. Can you help me analyze the code in the 'csautograde' folder?",
-    )
-
-    # Run the conversation and handle the response
-    messages = assistant.create_and_run_thread(coding_thread)
-    response, citations = assistant.extract_response(messages)
-    print("Example 1 - Code Analysis Response:", response)
-    if citations:
-        print("Citations:", citations)
-
-    # Example 2: Create a thread with an image for visualization help
-    viz_thread = assistant.create_thread(
-        message="Can you explain what's wrong with my matplotlib visualization?",
-        images=[
-            "https://miro.medium.com/v2/resize:fit:700/1*F9gf07Uzo9RyLdg52yDeNQ.png"],
-        forum_id=987654321  # Example forum channel ID
-    )
-
-    # Store the thread ID for later reference
-    post_id = 123456789
-    assistant.posts[post_id] = viz_thread.id
-
-    # Run the conversation
-    messages = assistant.create_and_run_thread(viz_thread)
-    response, citations = assistant.extract_response(messages)
-    print("\nExample 2 - Visualization Help Response:", response)
-
-    # Example 3: Continue the conversation with follow-up questions
-    follow_up_responses = [
-        "How can I fix the axis labels?",
-        "Can you show me how to add a legend?",
-        "What's the best way to save this plot in high resolution?"
-    ]
-
-    for question in follow_up_responses:
-        print(f"\nFollow-up question: {question}")
-        response, citations = assistant.continue_thread(
-            message=question,
-            post_id=post_id
+        # Example 1: Create a thread with a coding question
+        print("\n--- Example 1: GitHub Repository Analysis ---")
+        coding_thread = assistant.create_thread(
+            message="I'm having trouble with my GitHub repository at https://github.com/nauqh/csautograde. Can you help me analyze the code in the 'csautograde' folder?",
         )
-        print("Assistant response:", response)
+
+        # Run the conversation and handle the response
+        messages = assistant.create_and_run_thread(coding_thread)
+        response, citations = assistant.extract_response(messages)
+        print("Code Analysis Response:", response)
         if citations:
             print("Citations:", citations)
+
+        # Example 2: Create a thread with an image for visualization help
+        print("\n--- Example 2: Visualization Help ---")
+        viz_thread = assistant.create_thread(
+            message="Can you explain what's wrong with my matplotlib visualization?",
+            images=[
+                "https://miro.medium.com/v2/resize:fit:700/1*F9gf07Uzo9RyLdg52yDeNQ.png"],
+            forum_id=987654321  # Example forum channel ID
+        )
+
+        # Store the thread ID for later reference
+        post_id = 123456789
+        assistant.posts[post_id] = viz_thread.id
+
+        # Run the conversation
+        messages = assistant.create_and_run_thread(viz_thread)
+        response, citations = assistant.extract_response(messages)
+        print("Visualization Help Response:", response)
+        if citations:
+            print("Citations:", citations)
+
+        # Example 3: Continue the conversation with follow-up questions
+        print("\n--- Example 3: Follow-up Questions ---")
+        follow_up_responses = [
+            "How can I fix the axis labels?",
+            "Can you show me how to add a legend?",
+            "What's the best way to save this plot in high resolution?"
+        ]
+
+        for question in follow_up_responses:
+            print(f"\nFollow-up question: {question}")
+            response, citations = assistant.continue_thread(
+                message=question,
+                post_id=post_id
+            )
+            print("Assistant response:", response)
+            if citations:
+                print("Citations:", citations)
+
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
+        print(f"Error: {e}. Make sure the docs directory exists.")
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+        print(f"Error: {e}")

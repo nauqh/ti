@@ -1,0 +1,121 @@
+{
+  "tools": [
+    {
+      "type": "code_interpreter"
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "fetch_all_code_from_repo",
+        "description": "Fetches all code files from a GitHub repository.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "owner": {
+              "type": "string",
+              "description": "The owner of the GitHub repository."
+            },
+            "repo": {
+              "type": "string",
+              "description": "The name of the GitHub repository."
+            },
+            "path": {
+              "type": "string",
+              "description": "The directory path within the repository to fetch files from. Defaults to the root directory."
+            }
+          },
+          "required": ["owner", "repo"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "search_db",
+        "description": "Search the knowledge base for relevant information.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "The search query to find relevant documents in the knowledge base."
+            },
+            "k": {
+              "type": "integer",
+              "description": "Maximum number of documents to return. Defaults to 5."
+            }
+          },
+          "required": ["query"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "extract_owner",
+        "description": "Extracts GitHub repository owner from a thread post.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The input text to extract the repository owner from."
+            }
+          },
+          "required": ["text"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "extract_repo",
+        "description": "Extracts GitHub repository name from a thread post.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The input text to extract the repository name from."
+            }
+          },
+          "required": ["text"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_ta_role_for_forum",
+        "description": "Gets the TA role ID for a specific forum channel",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forum_id": {
+              "type": "integer",
+              "description": "The forum channel ID to get TA role for"
+            }
+          },
+          "required": ["forum_id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "search_youtube",
+        "description": "Searches for relevant YouTube videos based on a query",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "The search query for finding relevant YouTube videos"
+            }
+          },
+          "required": ["query"]
+        }
+      }
+    }
+  ]
+}
