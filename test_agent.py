@@ -57,20 +57,22 @@ def main():
         assistant = DataScienceAssistant(file_paths)
 
         # NOTE: Scenario 1: Course content (search in chromadb)
-        scenario1_question = "How many modules will I be learning in the Data Science course? What are they? Are they all mandatory?"
-        run_test_scenario(assistant, 1, scenario1_question)
+        question = "How many modules will I be learning in the Data Science course? What are they? Are they all mandatory?"
+        run_test_scenario(assistant, 1, question)
 
         # NOTE: Scenario 2: Search for resources
-        scenario2_question = "I want to learn about AI engineering, RAG in particular. How can I learn it?"
-        scenario2_follow_up = "I actually know the basics, I want to implement my own assistant with openai assistant api. How can I learn how to to it?"
-        run_test_scenario(assistant, 2, scenario2_question,
-                          scenario2_follow_up)
+        question = "I want to learn about AI engineering, RAG in particular. How can I learn it?"
+        follow_up = "I actually know the basics, I want to implement my own assistant with openai assistant api. How can I learn how to to it?"
+        run_test_scenario(assistant, 2, question, follow_up)
 
         # NOTE: Scenario 3: Exam question
-        scenario3_question = "please help me with this question: Question 12. Complete a function to calculate the difference between maximum and minimum values of a tuple of integers in other words, the maximum value minus the minimum value of the tuple."
-        scenario3_follow_up = "I have already attempted the question. Please give me the solution."
-        run_test_scenario(assistant, 3, scenario3_question,
-                          scenario3_follow_up)
+        question = "please help me with this question: Question 12. Complete a function to calculate the difference between maximum and minimum values of a tuple of integers in other words, the maximum value minus the minimum value of the tuple."
+        follow_up = "I have already attempted the question. Please give me the solution."
+        run_test_scenario(assistant, 3, question, follow_up)
+
+        # NOTE: Scenario 4: Explain Github repository
+        question = "I want to know more about this Github repository https://github.com/nauqh/nauqh. What is it about?"
+        run_test_scenario(assistant, 3, question)
 
         print("\nTest scenarios completed successfully!")
 
