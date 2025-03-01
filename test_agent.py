@@ -1,4 +1,4 @@
-from bot.agent import DataScienceAssistant
+from bot.agent import Assistant
 import os
 from loguru import logger
 
@@ -54,7 +54,7 @@ def main():
         # Initialize the assistant with documentation
         file_paths = [
             f"docs/{filename}" for filename in os.listdir('docs')] if os.path.exists('docs') else []
-        assistant = DataScienceAssistant(file_paths)
+        assistant = Assistant(file_paths)
 
         # NOTE: Scenario 1: Course content (search in chromadb)
         question = "How many modules will I be learning in the Data Science course? What are they? Are they all mandatory?"

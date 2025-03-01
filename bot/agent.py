@@ -22,7 +22,7 @@ from langchain.schema.document import Document
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 
 
-class DataScienceAssistant:
+class Assistant:
     def __init__(self, file_paths=None):
         self.client = OpenAI()
         self.posts = {}  # Maps Discord post IDs to OpenAI thread IDs

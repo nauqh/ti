@@ -1,6 +1,6 @@
 import hikari
 import lightbulb
-from ..agent import DataScienceAssistant
+from ..agent import Assistant
 from loguru import logger
 import os
 
@@ -20,7 +20,7 @@ def load(bot: lightbulb.BotApp) -> None:
 
 @plugin.listener(hikari.StartingEvent)
 async def on_starting(event: hikari.StartingEvent) -> None:
-    bot = DataScienceAssistant(
+    bot = Assistant(
         [f"docs/{filename}" for filename in os.listdir('docs')])
     plugin.app.d.bot = bot
 
