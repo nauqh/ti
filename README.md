@@ -1,6 +1,6 @@
 # T.i. - The Informationist
 
-![Version](https://img.shields.io/badge/Latest%20Version-v0.0.2-%2300b4d8.svg?&style=for-the-badge&logo=git&logoColor=white)
+![Version](https://img.shields.io/badge/Latest%20Version-v0.0.3-%2300b4d8.svg?&style=for-the-badge&logo=git&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-%230096c7.svg?&style=for-the-badge&logo=python&logoColor=white)
 ![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991.svg?style=for-the-badge&logo=OpenAI&logoColor=white)
@@ -93,11 +93,13 @@ chatbot/
 ├── bot/
 │   ├── extensions/
 │   │   └── questions.py    # Discord client implementation
+│   ├── schemas/
+│   │   └── tool_schemas.json # Assistant tool definitions in JSON format
 |   ├── __init__.py
 |   ├── __main__.py
 |   ├── bot.py        
-|   ├── assistant.py        # Core AI assistant implementation
-|   └── tools.py            # Assistant tool definitions
+|   ├── agent.py            # Core AI assistant implementation
+|   └── tools.py            # Assistant tool functions implementation
 ├── docs/                   # Documents for knowledge retrieval
 ├── data/
 │   └── instructions.txt    # Assistant guidelines
@@ -112,8 +114,8 @@ chatbot/
 
 ### AI Integration
 - OpenAI GPT models for natural language understanding
-- Vector store for efficient document search
-- Tool-based architecture for extensibility
+- ChromaDB vector store for efficient document search and retrieval
+- Tool-based architecture for extensibility with schemas defined in JSON
 
 ### Discord Integration
 - Thread-based conversations
@@ -142,7 +144,7 @@ graph TD
     H --> I{Tool Type}
     I -->|GitHub| J(Fetch Repository Code)
     I -->|YouTube| K(Search Videos)
-    I -->|Document| L(Send Doc Content)
+    I -->|Document| L(Search ChromaDB)
     J --> E'
     K --> E'
     L --> E'
