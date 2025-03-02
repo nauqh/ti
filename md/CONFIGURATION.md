@@ -3,9 +3,6 @@
 This document provides detailed technical configuration information for the T.i. chatbot system. It expands on the implementation details from the main documentation and provides specific configuration guidelines.
 
 ## Environment Configuration
-
-### Required Environment Variables
-
 The application requires the following environment variables to be properly configured:
 
 | Variable | Description | Example |
@@ -15,7 +12,7 @@ The application requires the following environment variables to be properly conf
 | `GITHUB_TOKEN` | GitHub personal access token for repository access | `ghp_abcdefghijklmno...` |
 | `GUILD_ID` | Discord server (guild) ID for bot initialization | `1081063200377806899` |
 
-**Security Note**: Store these environment variables in a `.env` file which should be added to `.gitignore` to prevent exposing sensitive information.
+Store these environment variables in a `.env` file which should be added to `.gitignore` to prevent exposing sensitive information.
 
 ## Vector Store Configuration
 
@@ -101,7 +98,7 @@ The bot uses an extension-based architecture with the following plugins:
      ```
 
 2. **Submission Plugin** (`submission.py`):
-   - Handles assignment submission review
+   - Handles assignment submission review (coming soon)
 
 ### Event Handler Configuration
 
@@ -195,7 +192,7 @@ The assistant is configured with the following tools:
    - Implementation: Lookup in the `QUESTION_CENTERS` dictionary
 
 6. **YouTube Search Tool** (`search_youtube`):
-   - Purpose: Finds educational videos on YouTube
+   - Purpose: Find educational videos on YouTube
    - Parameters:
      - `query`: The search query for YouTube
    - Implementation: Uses YouTube API or web scraping
@@ -227,51 +224,6 @@ Attachments from Discord messages are processed as follows:
    - Any non-image attachments
    - Downloaded and uploaded to OpenAI
    - Made accessible to the code interpreter
-
-### Run Processing Configuration
-
-The system processes OpenAI assistant runs with the following configuration:
-
-1. **Status Polling**:
-   - Initial delay: Configurable, typically 1-2 seconds
-   - Exponential backoff: Increases delay on rate limiting
-   - Maximum retries: Configurable, typically 10-20 attempts
-
-2. **Status Handling**:
-   - `completed`: Extracts and formats the response
-   - `requires_action`: Processes required tool calls
-   - `failed`: Handles errors and provides fallback responses
-
-3. **Tool Call Processing**:
-   - Parses required actions from the assistant
-   - Matches function names to implementation functions
-   - Executes appropriate tools with provided arguments
-   - Submits outputs back to the assistant
-
-## Integration Points
-
-### Discord Integration
-
-The system integrates with Discord through:
-- Forum thread monitoring
-- Message event handlers
-- Thread creation and management
-- Attachment processing
-
-### OpenAI Integration
-
-The system integrates with OpenAI through:
-- Assistant API for message handling
-- Embeddings API for vector database
-- Files API for attachment handling
-- Beta features for advanced capabilities
-
-### GitHub Integration
-
-Repository access is configured through:
-- GitHub API with personal access token
-- Repository content retrieval
-- Code analysis capabilities
 
 ## Deployment Configuration
 
@@ -309,7 +261,7 @@ The deployment is configured with the following files:
    - Handles rate limit errors gracefully
 
 4. **Error Handling**:
-   - Logs errors without exposing sensitive information
+   - Log errors without exposing sensitive information
    - Provides user-friendly fallback responses
 
 ## Monitoring and Logging

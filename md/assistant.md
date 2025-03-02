@@ -20,11 +20,6 @@ The `Assistant` class is the core AI component of the T.i chatbot system, provid
    - Vector database semantic search
    - Discord role and forum management
 
-4. **Content Processing**
-   - File and image attachment handling
-   - Citation tracking and extraction
-   - Response formatting and cleanup
-
 ## Implementation Details
 
 ### Initialization
@@ -87,7 +82,7 @@ Available tools include:
 - `extract_owner` and `extract_repo`: Parse GitHub repository details
 - `get_ta_role_for_forum`: Maps forum IDs to TA roles
 - `search_youtube`: Finds relevant educational videos
-- `search_db`: Performs semantic search on the document database
+- `search_db`: Performs semantic search in the document database
 
 ## Workflow Diagram
 
