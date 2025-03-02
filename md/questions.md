@@ -91,46 +91,53 @@ The following diagram illustrates the workflow of the components in the Question
 
 ```mermaid
 graph TD
-    %% Initialization
-    A[Bot Starts] --> B[Initialize Assistant with docs]
-    
+    %% Questions Extension Flow - Specific to this module
     %% Thread Creation Flow
-    C[New Forum Thread Created] --> D{Is in Question Forum?}
-    D -->|Yes| E[Extract Message & Attachments]
-    D -->|No| Z[Ignore]
-    E --> F[Create AI Thread]
-    F --> G[Store Discord-OpenAI Thread Mapping]
-    G --> H[Generate & Send Response]
+    ThreadCreated[New Forum Thread Created] --> ForumCheck{Is in Question Forum?}
+    ForumCheck -->|Yes| ExtractMsg[Extract Message & Attachments]
+    ForumCheck -->|No| Ignore((Ignore))
+    ExtractMsg --> InitThread[Create AI Thread]
+    InitThread --> StoreMapping[Store Discord-OpenAI Thread Mapping]
+    StoreMapping --> GenerateResp[Generate & Send Response]
     
     %% Follow-up Question Flow
-    I[New Message in Thread] --> J{Is Author Bot?}
-    J -->|Yes| Z
-    J -->|No| K{Is TA Role?}
-    K -->|Yes| Z
-    K -->|No| L{Response Count Check}
-    L -->|First Response| M[Process Follow-up Question]
-    L -->|2+ Responses| N[Stop Following Up]
-    M --> O[Continue AI Thread]
-    O --> P[Check Last Message Author]
-    P -->|Is Bot| Z
-    P -->|Not Bot| Q[Send AI Response]
-    Q --> R[Send Feedback Request]
-    R --> S[Add Reaction Emojis]
+    NewMsg[New Message in Thread] --> BotCheck{Is Author Bot?}
+    BotCheck -->|Yes| Ignore
+    BotCheck -->|No| TARoleCheck{Is TA Role?}
+    TARoleCheck -->|Yes| Ignore
+    TARoleCheck -->|No| ResponseCountCheck{Response Count Check}
+    ResponseCountCheck -->|First Response| ProcessFollowup[Process Follow-up Question]
+    ResponseCountCheck -->|2+ Responses| StopFollowing[Stop Following Up]
+    ProcessFollowup --> ContinueThread[Continue AI Thread]
+    ContinueThread --> LastAuthorCheck{Check Last Message Author}
+    LastAuthorCheck -->|Is Bot| Ignore
+    LastAuthorCheck -->|Not Bot| SendResp[Send AI Response]
+    SendResp --> SendFeedback[Send Feedback Request]
+    SendFeedback --> AddReactions[Add Rating Emojis]
     
     %% Feedback Collection Flow
-    T[Reaction Added] --> U{Is Rating Emoji?}
-    U -->|No| Z
-    U -->|Yes| V[Extract Rating Score]
-    V --> W[Log User Feedback]
-    W --> X[Send to Staff Channel]
+    ReactionAdded[Reaction Added] --> RatingCheck{Is Rating Emoji?}
+    RatingCheck -->|No| Ignore
+    RatingCheck -->|Yes| ExtractScore[Extract Rating Score]
+    ExtractScore --> LogFeedback[Log User Feedback]
+    LogFeedback --> SendToStaff[Send to Staff Channel]
     
-    %% Legend
-    style A fill:#d4f1f9,stroke:#05445E
-    style B fill:#d4f1f9,stroke:#05445E
-    style Z fill:#F8D7DA,stroke:#842029
-    style R fill:#D1E7DD,stroke:#0F5132
-    style S fill:#D1E7DD,stroke:#0F5132
-    style X fill:#FFF3CD,stroke:#664D03
+    %% This subgraph connects to the Core Assistant
+    GenerateResp -.-> CoreAssistant[Send to Core Assistant]
+    ContinueThread -.-> CoreAssistant
+    
+    %% Legend styling 
+    classDef startEvent fill:#d4f1f9,stroke:#05445E
+    classDef errorEvent fill:#F8D7DA,stroke:#842029
+    classDef feedbackEvent fill:#D1E7DD,stroke:#0F5132
+    classDef staffEvent fill:#FFF3CD,stroke:#664D03
+    classDef coreRef fill:#f0f0f0,stroke:#707070,stroke-dasharray: 5 5
+    
+    class ThreadCreated,ReactionAdded startEvent
+    class Ignore errorEvent
+    class SendFeedback,AddReactions feedbackEvent
+    class SendToStaff staffEvent
+    class CoreAssistant coreRef
 ```
 
 ## Component Legend
@@ -144,9 +151,4 @@ graph TD
 ### Core Functions
 - `handle_post_creation`: Processes initial questions
 - `handle_follow_up`: Manages follow-up interactions
-- `QUESTION_CENTERS`: Maps course forums to TA roles
-
-### Limitations
-- Maximum of 2 bot responses per thread
-- TA messages prevent bot responses
-- Only specific forum channels are monitored
+- `QUESTION_CENTERS` dictionary: Maps course forums to TA roles

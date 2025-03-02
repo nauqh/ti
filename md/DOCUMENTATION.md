@@ -15,19 +15,19 @@ The application follows a modular architecture that separates the AI assistant f
    - Manages communication with OpenAI's API
    - Handles vector store creation and management through ChromaDB
    - Processes and responds to user queries
+   
+   - **Tool Functions** (`bot/tools.py`):
+     - Implements utility functions used by the assistant for specialized tasks
+     - Includes GitHub repository code retrieval, YouTube search, and knowledge base search
 
-2. **Discord Bot Module** (`bot/bot.py`, `bot/extensions/*`):
+   - **Vector Store** (`chroma/`):
+     - ChromaDB-based vector database for storing and retrieving knowledge base documents
+     - Enables semantic search for relevant information based on user queries
+
+2. **Discord Bot Module** (`bot/bot.py`, `bot/extensions/`):
    - Implements Discord integration using Hikari and Lightbulb libraries
    - Manages forum posts, threads, and user interactions
    - Routes user questions to the AI assistant and posts responses
-
-3. **Tool Functions** (`bot/tools.py`):
-   - Implements utility functions used by the assistant for specialized tasks
-   - Includes GitHub repository code retrieval, YouTube search, and knowledge base search
-
-4. **Vector Store** (`chroma/`):
-   - ChromaDB-based vector database for storing and retrieving knowledge base documents
-   - Enables semantic search for relevant information based on user queries
 
 ### Project Structure
 
@@ -35,33 +35,32 @@ The application follows a modular architecture that separates the AI assistant f
 chatbot/
 ├── bot/
 │   ├── extensions/
-│   │   ├── questions.py    # Discord client implementation for Q&A functionality
-│   │   └── submission.py   # Discord client implementation for handling submissions
+│   │   ├── questions.py      # Q&A functionality
+│   │   └── submission.py     # Handling submissions (comming soon)
 │   ├── schemas/
 │   │   └── tool_schemas.json # Assistant tool definitions in JSON format
-|   ├── __init__.py         # Package initialization and version information
-|   ├── __main__.py         # Entry point for running the bot
-|   ├── bot.py              # Discord bot configuration and setup
-|   ├── agent.py            # Core AI assistant implementation
-|   └── tools.py            # Assistant tool functions implementation
-├── docs/                   # Documents for knowledge retrieval
-├── chroma/                 # Vector database storage directory
+|   ├── __init__.py           # Package initialization and version information
+|   ├── __main__.py           # Entry point for running the bot
+|   ├── bot.py                # Discord bot configuration and setup
+|   ├── agent.py              # Core AI assistant implementation
+|   └── tools.py              # Assistant tool functions implementation
+├── docs/                     # Documents for knowledge retrieval
+├── chroma/                   # Vector database storage directory
 ├── data/
-│   └── instructions.txt    # Assistant guidelines
-├── .env                    # Environment variables
-├── .gitignore              # Git ignore configuration
-├── LICENSE                 # Project license
-├── README.md               # Project overview and documentation
-├── DOCUMENTATION.md        # Detailed technical documentation
-├── requirements.txt        # Python dependencies
-├── runtime.txt             # Python runtime specification for deployment
-├── Procfile                # Deployment configuration for Heroku
-└── test_agent.py           # Test script for the AI assistant
+│   └── instructions.txt      # Assistant system prompt, guidelines
+├── .env                    
+├── .gitignore             
+├── LICENSE                
+├── README.md                 # Project overview and documentation
+├── requirements.txt          # Python dependencies
+├── runtime.txt               # Python runtime specification for deployment
+├── Procfile                  # Deployment configuration for Heroku
+└── test_agent.py             # Test script for the AI assistant
 ```
 
 ## Detailed Component Analysis
 
-### AI Assistant Implementation (`bot/agent.py`)
+### 1. AI Assistant Module (`bot/agent.py`)
 
 The `Assistant` class is the central component that manages interactions with OpenAI's API:
 
@@ -91,7 +90,7 @@ The `Assistant` class is the central component that manages interactions with Op
    - Extracts and formats assistant responses
    - Handles citations and references to external files
 
-### Discord Integration (`bot/extensions/questions.py`)
+### 2. Discord Bot Module (`bot/extensions/questions.py`)
 
 The Discord integration is implemented through the Hikari and Lightbulb libraries:
 
@@ -120,30 +119,7 @@ The Discord integration is implemented through the Hikari and Lightbulb librarie
    - Skips AI responses when TAs are actively responding
    - Tags appropriate TAs for complex questions
 
-### Submission Handling (`bot/extensions/submission.py`)
-
-The submission extension handles exam submissions and help requests:
-
-#### Key Features:
-
-1. **WebSocket Integration**:
-   - Connects to a FastAPI WebSocket server for real-time notifications
-   - Handles submission and help request events
-
-2. **UI Components**:
-   - Implements interactive buttons using the Miru library
-   - Creates views for exam submissions and help requests
-
-3. **Notification Routing**:
-   - Posts notifications to designated Discord channels
-   - Provides structured information for TAs to review
-
-4. **Task Assignment**:
-   - Allows TAs to claim submissions and help requests
-   - Updates messages with assignment status
-   - Sends detailed information to the assigned TA
-
-### Tools Implementation (`bot/tools.py`)
+### 3. Tools Implementation (`bot/tools.py`)
 
 The tools module provides utility functions for the AI assistant:
 
@@ -164,18 +140,6 @@ The tools module provides utility functions for the AI assistant:
 4. **TA Role Management**:
    - `get_ta_role_for_forum`: Identifies the appropriate TA role ID for different forum channels
 
-### Tool Schemas (`bot/schemas/tool_schemas.json`)
-
-The tool schemas define the function signatures and parameters for the assistant's tools:
-
-#### Defined Tools:
-
-1. **Code Interpreter**: Enables code execution capabilities
-2. **GitHub Tools**: Repository access and code retrieval functions
-3. **Knowledge Base Search**: Vector database query function
-4. **YouTube Search**: Video search and link retrieval
-5. **TA Role Management**: Forum-specific role identification
-
 ## Data Flow
 
 The application's data flow follows this pattern:
@@ -191,31 +155,90 @@ The application's data flow follows this pattern:
 
 ### Workflow Diagram
 
+The following diagram illustrates the complete workflow of the system, including both the core AI assistant functionality and the Questions extension integration:
+
 ```mermaid
 graph TD
-    A((On new Message)) --> B(Check if Thread Exists)
-    B -->|Yes| C(Add Message to Thread)
-    B -->|No| D(Create Thread)
-    D --> C
-    C --> E(Create Run)
-    E --> E'(Process Run)
-    E' --> F{Run Status Check}
-    F -->|completed| G(Retrieve Response Messages)
-    F -->|requires_action| H(Process Required Tool Calls)
-    H --> I{Tool Type}
-    I -->|GitHub| J(Fetch Repository Code)
-    I -->|YouTube| K(Search Videos)
-    I -->|Document| L(Search ChromaDB)
-    J --> E'
-    K --> E'
-    L --> E'
-    F -->|failed| M(Log Error and Exit)
-
-    G --> O{Check Citations}
-    O -->|Yes| P(Add Referenced Files)
-    O -->|No| Q(Display Response to User)
-    P --> Q
-    Q --> S(((End)))
+    %% Main Entry Points
+    UserMsg((New Message)) --> CheckThread{Check if Thread Exists}
+    CheckThread -->|Yes| AddMsg[Add Message to Thread]
+    CheckThread -->|No| CreateThread[Create Thread]
+    CreateThread --> AddMsg
+    
+    %% Core Assistant Flow - Main Section
+    subgraph CoreAssistant [Core Assistant Flow]
+        AddMsg --> CreateRun[Create Run]
+        CreateRun --> ProcessRun[Process Run]
+        ProcessRun --> RunStatus{Run Status Check}
+        RunStatus -->|completed| RetrieveMsg[Retrieve Response Messages]
+        RunStatus -->|requires_action| ProcessTools[Process Required Tool Calls]
+        RunStatus -->|failed| LogError[Log Error and Exit]
+        
+        %% Tool Handling Section
+        ProcessTools --> ToolType{Tool Type}
+        ToolType -->|GitHub| FetchRepo[Fetch Repository Code]
+        ToolType -->|YouTube| SearchVids[Search Videos]
+        ToolType -->|Document| SearchDB[Search ChromaDB]
+        ToolType -->|TA Role| GetRole[Get TA Role for Forum]
+        FetchRepo --> ProcessRun
+        SearchVids --> ProcessRun
+        SearchDB --> ProcessRun
+        GetRole --> ProcessRun
+        
+        %% Response Processing Section
+        RetrieveMsg --> CheckCitations{Check Citations}
+        CheckCitations -->|Yes| AddFiles[Add Referenced Files]
+        CheckCitations -->|No| DisplayResp[Display Response to User]
+        AddFiles --> DisplayResp
+    end
+    
+    %% Questions Extension Flow - Can be displayed separately
+    subgraph QuestionsExtension [Questions Extension Flow]
+        %% Thread Creation Flow
+        ThreadCreated[New Forum Thread Created] --> ForumCheck{Is in Question Forum?}
+        ForumCheck -->|Yes| ExtractMsg[Extract Message & Attachments]
+        ForumCheck -->|No| Ignore((Ignore))
+        ExtractMsg --> InitThread[Create AI Thread]
+        InitThread --> StoreMapping[Store Discord-OpenAI Thread Mapping]
+        StoreMapping --> GenerateResp[Generate & Send Response]
+        
+        %% Follow-up Question Flow
+        NewMsg[New Message in Thread] --> BotCheck{Is Author Bot?}
+        BotCheck -->|Yes| Ignore
+        BotCheck -->|No| TARoleCheck{Is TA Role?}
+        TARoleCheck -->|Yes| Ignore
+        TARoleCheck -->|No| ResponseCountCheck{Response Count Check}
+        ResponseCountCheck -->|First Response| ProcessFollowup[Process Follow-up Question]
+        ResponseCountCheck -->|2+ Responses| StopFollowing[Stop Following Up]
+        ProcessFollowup --> ContinueThread[Continue AI Thread]
+        ContinueThread --> LastAuthorCheck{Check Last Message Author}
+        LastAuthorCheck -->|Is Bot| Ignore
+        LastAuthorCheck -->|Not Bot| SendResp[Send AI Response]
+        SendResp --> SendFeedback[Send Feedback Request]
+        SendFeedback --> AddReactions[Add Rating Emojis]
+        
+        %% Feedback Collection Flow
+        ReactionAdded[Reaction Added] --> RatingCheck{Is Rating Emoji?}
+        RatingCheck -->|No| Ignore
+        RatingCheck -->|Yes| ExtractScore[Extract Rating Score]
+        ExtractScore --> LogFeedback[Log User Feedback]
+        LogFeedback --> SendToStaff[Send to Staff Channel]
+    end
+    
+    %% Connections between subgraphs
+    GenerateResp -.-> CreateRun
+    ContinueThread -.-> ProcessRun
+    
+    %% Legend styling
+    classDef startEvent fill:#d4f1f9,stroke:#05445E
+    classDef errorEvent fill:#F8D7DA,stroke:#842029
+    classDef feedbackEvent fill:#D1E7DD,stroke:#0F5132
+    classDef staffEvent fill:#FFF3CD,stroke:#664D03
+    
+    class UserMsg,ThreadCreated,ReactionAdded startEvent
+    class LogError,Ignore errorEvent
+    class SendFeedback,AddReactions feedbackEvent
+    class SendToStaff staffEvent
 ```
 
 ## Technical Implementation Details
