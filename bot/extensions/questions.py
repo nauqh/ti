@@ -8,7 +8,7 @@ QUESTION_CENTERS = {
     "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773, "staff_channel": 1237424754739253279},
     "FSW": {"forum_id": 1077118780523679787, "ta_id": 912553106124972083},
     "CS50": {"forum_id": 1343930405702865037, "ta_id": 1233260164233297942},
-    # "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046253609508945},
+    # "MOENASH": {"forum_id": 1344962762887004160, "ta_id": 947046253609508945},
 }
 
 plugin = lightbulb.Plugin("Q&A", "🙋‍♂️ Question Center")
@@ -57,9 +57,20 @@ async def handle_post_creation(post: hikari.GuildThreadChannel, message: hikari.
 async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
     post = await event.fetch_channel()
 
+    forum = await event.app.rest.fetch_channel(post.parent_id)
+    tags = {
+        tag.id: tag.name for tag in forum.available_tags
+    }
     if post.parent_id in [guild["forum_id"] for guild in QUESTION_CENTERS.values()]:
         messages = await post.fetch_history()
         if messages:
+            tag_name = tags.get(post.applied_tag_ids[0], "Unknown")
+            logger.info(f"Thread created with tag: {tag_name}")
+
+            if tag_name == "Code review":
+                messages[0].content = "Please review the following code:\n\n" + \
+                    messages[0].content
+
             await handle_post_creation(post, messages[0])
     else:
         print(
