@@ -72,7 +72,98 @@ def main():
 
         # NOTE: Scenario 4: Explain Github repository
         question = "I want to know more about this Github repository https://github.com/nauqh/nauqh. What is it about?"
-        run_test_scenario(assistant, 3, question)
+        run_test_scenario(assistant, 4, question)
+
+        # NOTE: Scenario 5: Code review
+        question = "Please review the following code:\n\n" + \
+            """
+#include <stdio.h>
+#include <cs50.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define ASCII 26
+#define BeginUpper "A"
+#define BeginLower "a"
+
+string input();
+bool check_alphabetic(string argv);
+bool check_repested(string argv);
+void check_condition(string argv);
+
+string input(){
+    string str = get_string("plaintext: ");
+    return str;
+}
+
+bool check_alphabetic(string argv){
+    bool value=0;
+    for(int i = 0; i < strlen(argv); i++){
+        if(isdigit(argv[i])){
+            value = false;
+            return value;
+        }else{
+            value = true;
+        }
+    }
+    return value;
+}
+
+bool check_repested(string argv){
+    bool value = 0;
+    for(int i = 0; i < strlen(argv) - 1; i++){
+        if(isalpha(argv[i])){
+            for(int j = i + 1; j < strlen(argv); j++){
+                if(argv[i] == argv[j]){
+                    value = false;
+                    return value;
+                }else{
+                    value = true;
+                }
+            }
+        }
+    }
+    return value;
+}
+
+void check_condition(string argv){
+    int value;
+    string str = input();
+    for(int i = 0; i < strlen(str); i++){
+        if(isupper(str[i])){
+            value = (str[i] - BeginUpper[0]) % 26;
+            str[i] = toupper(argv[value]);
+        }else if(islower(str[i])){
+            value = (str[i] - BeginLower[0]) % 26;
+            str[i] = tolower(argv[value]);
+        }
+    }
+    printf("ciphertext: %s\n",str);
+}
+
+int main(int argc, string argv[]){
+    if(strlen(argv[argc-1]) != ASCII){
+        printf("Key must contain 26 characters.\n");
+        return 1;
+    }else if(check_alphabetic(argv[argc-1]) == false){
+        printf("Key must only contain alphabetic characters.\n");
+        return 1;
+    }else if(check_repested(argv[argc-1]) == false){
+        printf("Key must not contain repeated characters.\n");
+        return 1;
+    }else if(argc != 2){
+        printf("Usage: ./substitution key\n");
+        return 1;
+    }else{
+        check_condition(argv[argc-1]);
+        return 0;
+    }
+}
+
+Em muốn hỏi là nên fix lỗi kia như thế nào ạ? Em có cần cải thiện logic code ở đâu cho hợp lý không ạ?
+    """
+        run_test_scenario(assistant, 5, question)
 
         print("\nTest scenarios completed successfully!")
 

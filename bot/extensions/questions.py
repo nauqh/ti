@@ -54,6 +54,22 @@ async def handle_post_creation(post: hikari.GuildThreadChannel, message: hikari.
 
 
 @plugin.listener(hikari.GuildThreadCreateEvent)
+async def on_thread_create_cs50(event: hikari.GuildThreadCreateEvent) -> None:
+    """Replicate thread creation in the CS50 forum (batch 3, 4) to clone forum"""
+    thread: hikari.GuildThreadChannel = await event.fetch_channel()
+
+    if thread.parent_id in [1318582941667819683, 1287676502196092928]:
+        messages = await thread.fetch_history()
+        if messages:
+            message: hikari.Message = messages[0]
+            attachments = [att.url for att in message.attachments]
+            response = plugin.app.d.bot.ask_with_context(
+                thread.id, attachments, message.content
+            )
+            await event.thread.send(response)
+
+
+@plugin.listener(hikari.GuildThreadCreateEvent)
 async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
     post = await event.fetch_channel()
 
