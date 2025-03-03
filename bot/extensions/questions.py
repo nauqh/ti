@@ -65,7 +65,7 @@ async def on_thread_create_cs50(event: hikari.GuildThreadCreateEvent) -> None:
             logger.info(
                 f"Thread created in CS50 forum: {thread.name}. Start cloning...")
             new_thread = await event.app.rest.create_thread(
-                channel=1343930405702865037,
+                1343930405702865037,
                 name=thread.name,
                 applied_tags=[1345779561404567655]
             )
