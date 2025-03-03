@@ -64,21 +64,13 @@ async def on_thread_create_cs50(event: hikari.GuildThreadCreateEvent) -> None:
             message: hikari.Message = messages[0]
             logger.info(
                 f"Thread created in CS50 forum: {thread.name}. Start cloning...")
-            new_thread = await event.app.rest.create_thread(
+            await event.app.rest.create_forum_post(
                 1343930405702865037,
-                hikari.ChannelType.GUILD_PUBLIC_THREAD,
                 thread.name,
+                message.content,
+                attachments=message.attachments,
+                tags=[1345779561404567655]
             )
-            new_thread.edit(
-                applied_tags=[1345779561404567655]
-            )
-            # Post the original message content and attachments
-            content = message.content
-            await new_thread.send(content)
-
-            # Send attachments
-            for att in message.attachments:
-                await new_thread.send(att.url)
 
 
 @plugin.listener(hikari.GuildThreadCreateEvent)
