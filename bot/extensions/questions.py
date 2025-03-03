@@ -68,9 +68,10 @@ async def on_thread_create_cs50(event: hikari.GuildThreadCreateEvent) -> None:
                 1343930405702865037,
                 hikari.ChannelType.GUILD_PUBLIC_THREAD,
                 thread.name,
+            )
+            new_thread.edit(
                 applied_tags=[1345779561404567655]
             )
-
             # Post the original message content and attachments
             content = message.content
             await new_thread.send(content)
