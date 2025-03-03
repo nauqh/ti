@@ -20,6 +20,13 @@ The `Assistant` class is the core AI component of the T.i chatbot system, provid
    - Vector database semantic search
    - Discord role and forum management
 
+4. **Code Review**
+   - Language-specific review for C, Python, and SQL
+   - Evaluation based on correctness, style, design, and documentation
+   - Structured feedback with improvement suggestions
+   - Support for CS50x academic standards
+   - Guidance-focused review without providing complete solutions
+
 ## Implementation Details
 
 ### Initialization
@@ -167,6 +174,7 @@ Test scenarios include:
 2. Resource recommendations
 3. Exam question handling
 4. GitHub repository explanation
+5. Code review
 
 ## Integration Points
 
