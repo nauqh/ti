@@ -81,6 +81,7 @@ class HelpRequestView(miru.View):
 async def websocket_client():
     """Connect to FastAPI WebSocket and handle submission notifications."""
     uri = "wss://cspyclient.up.railway.app/ws"
+    uri = "wss://cspyexamclient.up.railway.app/ws"
     while True:
         try:
             async with websockets.connect(uri) as websocket:
