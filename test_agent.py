@@ -71,8 +71,52 @@ def main():
         run_test_scenario(assistant, 3, question, follow_up)
 
         # NOTE: Scenario 4: Explain Github repository
-        question = "I want to know more about this Github repository https://github.com/nauqh/nauqh. What is it about?"
+        question = "I want to know more about this Github repository https://github.com/Tatetrix/cs50-project. What is it about?"
         run_test_scenario(assistant, 4, question)
+        # NOTE: Scenario 4bis: Explain code error
+        question = """
+bài 3 e chạy code trên sandbox ra kết quả đúng nhưng k pass test case, check giúp e với
+
+function getAffordableItems(listOfItems, maxPriceVnd) {
+    listOfItems.sort((item1, item2) => item1.price - item2.price);
+    const itemicanafford = listOfItems.filter((checkprice) => checkprice.price <= maxPriceVnd);
+    return itemicanafford;
+}
+
+const items = [
+    {
+        name: 'table',
+        price: 100000,
+        currency: 'VND',
+    },
+    {
+        name: 'microwave',
+        price: 700000,
+        currency: 'VND',
+    },
+    {
+        name: 'sofa',
+        price: 500000,
+        currency: 'VND',
+    },
+    {
+        name: 'coffee beans',
+        price: 80000,
+        currency: 'VND',
+    },
+    {
+        name: 'bed',
+        price: 300000,
+        currency: 'VND',
+    },
+    {
+        name: 'yahama exciter',
+        price: 22000000,
+        currency: 'VND',
+    },
+];
+"""
+        run_test_scenario(assistant, 4.5, question)
 
         # NOTE: Scenario 5: Code review
         question = "Please review the following code:\n\n" + \
