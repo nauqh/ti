@@ -78,10 +78,8 @@ class HelpRequestView(miru.View):
             )
 
 
-async def websocket_client():
-    """Connect to FastAPI WebSocket and handle submission notifications."""
-    uri = "wss://cspyclient.up.railway.app/ws"
-    uri = "wss://cspyexamclient.up.railway.app/ws"
+async def handle_websocket(uri: str, channel_id: int):
+    """Connect to a FastAPI WebSocket and handle notifications."""
     while True:
         try:
             async with websockets.connect(uri) as websocket:
@@ -101,7 +99,7 @@ async def websocket_client():
                         )
 
                         await plugin.bot.rest.create_message(
-                            947032992063303730,
+                            channel_id,
                             message,
                             components=view
                         )
@@ -125,7 +123,7 @@ async def websocket_client():
                             attachments.append(image_url)
 
                         await plugin.bot.rest.create_message(
-                            947032992063303730,
+                            channel_id,
                             message,
                             components=view,
                             attachments=attachments
@@ -148,10 +146,25 @@ async def websocket_client():
             await asyncio.sleep(5)
 
 
+async def start_websocket_clients():
+    """Start multiple WebSocket client connections."""
+    # First WebSocket connection
+    uri1 = "wss://cspyclient.up.railway.app/ws"
+    channel_id1 = 947032992063303730
+
+    # Second WebSocket connection
+    uri2 = "wss://cspyexamclient.up.railway.app/ws"
+    channel_id2 = 947032992063303730  # You can use different channels if needed
+
+    # Create tasks for both connections
+    asyncio.create_task(handle_websocket(uri1, channel_id1))
+    asyncio.create_task(handle_websocket(uri2, channel_id2))
+
+
 @plugin.listener(hikari.StartedEvent)
 async def on_started(event: hikari.StartedEvent) -> None:
     plugin.d.miru = miru.Client(plugin.bot)
-    asyncio.create_task(websocket_client())
+    await start_websocket_clients()
 
 
 def load(bot: lightbulb.BotApp) -> None:
