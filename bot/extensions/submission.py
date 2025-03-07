@@ -138,11 +138,10 @@ async def handle_websocket(uri: str, channel_id: int):
                             f"@everyone\n"
                             f"- Exam: {content['exam_name']}\n"
                             f"- Email: {content['email']}\n"
-                            f"- Urls: https://nauqh.dev"
                         )
 
                         # First send the message without attachments
-                        message_obj = await plugin.bot.rest.create_message(
+                        await plugin.bot.rest.create_message(
                             channel_id,
                             message_content,
                             components=view
@@ -162,10 +161,9 @@ async def handle_websocket(uri: str, channel_id: int):
                             try:
                                 # Create a thread from the message
                                 thread = await plugin.bot.rest.create_thread(
-                                    channel=channel_id,
-                                    message=message_obj.id,
-                                    name=f"Submission Files - {content['email']}",
-                                    auto_archive_duration=1440  # 24 hours in minutes
+                                    channel_id,
+                                    hikari.ChannelType.GUILD_PUBLIC_THREAD,
+                                    f"Submission Files - {content['email']}",
                                 )
 
                                 # Send attachments in the thread
