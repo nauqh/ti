@@ -134,12 +134,20 @@ async def handle_websocket(uri: str, channel_id: int):
                         content = data["content"]
                         view = SubmissionView(content)
 
-                        message = (
+                        message_content = (
                             f"@everyone\n"
                             f"- Exam: {content['exam_name']}\n"
                             f"- Email: {content['email']}\n"
                             f"- Urls: https://nauqh.dev"
                         )
+
+                        # First send the message without attachments
+                        message_obj = await plugin.bot.rest.create_message(
+                            channel_id,
+                            message_content,
+                            components=view
+                        )
+                        plugin.d.miru.start_view(view)
 
                         # Process attachments from base64 files in answers
                         temp_files = []
@@ -149,22 +157,31 @@ async def handle_websocket(uri: str, channel_id: int):
                             temp_files, file_attachments = await process_base64_files(content["answers"])
                             attachments.extend(file_attachments)
 
-                        try:
-                            await plugin.bot.rest.create_message(
-                                channel_id,
-                                message,
-                                components=view,
-                                attachments=attachments if attachments else None
-                            )
-                            plugin.d.miru.start_view(view)
-                        finally:
-                            # Clean up temp files
-                            for file_path in temp_files:
-                                try:
-                                    os.unlink(file_path)
-                                except Exception as e:
-                                    print(
-                                        f"Error deleting temp file: {str(e)}")
+                        # If we have attachments, create a thread and post them there
+                        if attachments:
+                            try:
+                                # Create a thread from the message
+                                thread = await plugin.bot.rest.create_thread(
+                                    channel=channel_id,
+                                    message=message_obj.id,
+                                    name=f"Submission Files - {content['email']}",
+                                    auto_archive_duration=1440  # 24 hours in minutes
+                                )
+
+                                # Send attachments in the thread
+                                await plugin.bot.rest.create_message(
+                                    thread.id,
+                                    "Submitted files:",
+                                    attachments=attachments
+                                )
+                            finally:
+                                # Clean up temp files
+                                for file_path in temp_files:
+                                    try:
+                                        os.unlink(file_path)
+                                    except Exception as e:
+                                        print(
+                                            f"Error deleting temp file: {str(e)}")
 
                     elif data["type"] == "help_request":
                         content = data["content"]
