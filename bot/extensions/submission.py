@@ -166,7 +166,7 @@ async def handle_websocket(uri: str, channel_id: int):
                                 thread = await plugin.bot.rest.create_thread(
                                     channel_id,
                                     hikari.ChannelType.GUILD_PUBLIC_THREAD,
-                                    f"Submission Files - {content['email']}",
+                                    f"{content['exam_name']} - {content['email']}",
                                 )
 
                                 # Send attachments in the thread
@@ -175,6 +175,7 @@ async def handle_websocket(uri: str, channel_id: int):
                                     "Submitted files:",
                                     attachments=attachments
                                 )
+                                await thread.send(f"```{content['summary']}```")
                             finally:
                                 # Clean up temp files
                                 for file_path in temp_files:
