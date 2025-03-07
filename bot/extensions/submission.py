@@ -81,7 +81,7 @@ class HelpRequestView(miru.View):
             )
 
 
-async def process_base64_files(answers, question_id=None):
+async def process_base64_files(answers):
     """
     Extract base64 files from answers and convert them to temporary files
     Returns a list of file paths that need to be cleaned up later
@@ -106,11 +106,8 @@ async def process_base64_files(answers, question_id=None):
                         suffix = os.path.splitext(
                             file_name)[1] if "." in file_name else ""
                         
-                        # Use question_id in filename if provided
-                        if question_id:
-                            new_file_name = f"{question_id}_file{i}{suffix}"
-                        else:
-                            new_file_name = file_name
+                        # Use question index as file name
+                        new_file_name = f"q{i}{suffix}"
 
                         # Create a temp file and write decoded content
                         temp_file = tempfile.NamedTemporaryFile(
@@ -159,9 +156,7 @@ async def handle_websocket(uri: str, channel_id: int):
                         attachments = []
 
                         if "answers" in content:
-                            # Use a combination of email and exam_name for the question_id, or use a dedicated id if available
-                            question_id = content.get("id", f"{content['email']}_{content['exam_name']}".replace(" ", "_"))
-                            temp_files, file_attachments = await process_base64_files(content["answers"], question_id)
+                            temp_files, file_attachments = await process_base64_files(content["answers"])
                             attachments.extend(file_attachments)
 
                         # If we have attachments, create a thread and post them there
