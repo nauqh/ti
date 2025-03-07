@@ -81,7 +81,7 @@ class HelpRequestView(miru.View):
             )
 
 
-async def process_base64_files(answers):
+async def process_base64_files(answers, question_id=None):
     """
     Extract base64 files from answers and convert them to temporary files
     Returns a list of file paths that need to be cleaned up later
@@ -92,7 +92,7 @@ async def process_base64_files(answers):
     if not answers:
         return temp_files, attachments
 
-    for answer in answers:
+    for i, answer in enumerate(answers, 1):
         if "files" in answer:
             for file_info in answer.get("files", []):
                 if "content" in file_info and file_info["content"].startswith("data:"):
@@ -105,10 +105,16 @@ async def process_base64_files(answers):
                         file_name = file_info.get("name", "file")
                         suffix = os.path.splitext(
                             file_name)[1] if "." in file_name else ""
+                        
+                        # Use question_id in filename if provided
+                        if question_id:
+                            new_file_name = f"{question_id}_file{i}{suffix}"
+                        else:
+                            new_file_name = file_name
 
                         # Create a temp file and write decoded content
                         temp_file = tempfile.NamedTemporaryFile(
-                            delete=False, suffix=suffix)
+                            delete=False, suffix=suffix, prefix=f"{new_file_name}_")
                         temp_file.write(base64.b64decode(content_string))
                         temp_file.close()
 
@@ -153,7 +159,9 @@ async def handle_websocket(uri: str, channel_id: int):
                         attachments = []
 
                         if "answers" in content:
-                            temp_files, file_attachments = await process_base64_files(content["answers"])
+                            # Use a combination of email and exam_name for the question_id, or use a dedicated id if available
+                            question_id = content.get("id", f"{content['email']}_{content['exam_name']}".replace(" ", "_"))
+                            temp_files, file_attachments = await process_base64_files(content["answers"], question_id)
                             attachments.extend(file_attachments)
 
                         # If we have attachments, create a thread and post them there
