@@ -101,14 +101,17 @@ async def process_base64_files(answers):
                         _, content_string = file_info["content"].split(",", 1) if "," in file_info["content"] else (
                             None, file_info["content"].split(";base64,")[1])
 
-                        # Create temp file with appropriate extension
+                        # Get original filename and extract extension
                         file_name = file_info.get("name", "file")
                         suffix = os.path.splitext(
                             file_name)[1] if "." in file_name else ""
+                        
+                        # Remove extension from the filename
+                        base_name = os.path.splitext(file_name)[0]
 
-                        # Create a temp file and write decoded content
+                        # Create temp file with appropriate extension
                         temp_file = tempfile.NamedTemporaryFile(
-                            delete=False, suffix=suffix, prefix=f"q{i}{file_name}_")
+                            delete=False, suffix=suffix, prefix=f"Q{i}_{base_name}_")
                         temp_file.write(base64.b64decode(content_string))
                         temp_file.close()
 
