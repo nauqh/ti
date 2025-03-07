@@ -105,13 +105,10 @@ async def process_base64_files(answers):
                         file_name = file_info.get("name", "file")
                         suffix = os.path.splitext(
                             file_name)[1] if "." in file_name else ""
-                        
-                        # Use question index as file name
-                        new_file_name = f"q{i}{suffix}"
 
                         # Create a temp file and write decoded content
                         temp_file = tempfile.NamedTemporaryFile(
-                            delete=False, suffix=suffix, prefix=f"{new_file_name}_")
+                            delete=False, suffix=suffix, prefix=f"q{i}{file_name}_")
                         temp_file.write(base64.b64decode(content_string))
                         temp_file.close()
 
