@@ -4,6 +4,9 @@ import miru
 import websockets
 import json
 import asyncio
+import os
+import tempfile
+import base64
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -78,6 +81,46 @@ class HelpRequestView(miru.View):
             )
 
 
+async def process_base64_files(answers):
+    """
+    Extract base64 files from answers and convert them to temporary files
+    Returns a list of file paths that need to be cleaned up later
+    """
+    temp_files = []
+    attachments = []
+
+    if not answers:
+        return temp_files, attachments
+
+    for answer in answers:
+        if "files" in answer:
+            for file_info in answer.get("files", []):
+                if "content" in file_info and file_info["content"].startswith("data:"):
+                    try:
+                        # Parse content type and base64 data
+                        _, content_string = file_info["content"].split(",", 1) if "," in file_info["content"] else (
+                            None, file_info["content"].split(";base64,")[1])
+
+                        # Create temp file with appropriate extension
+                        file_name = file_info.get("name", "file")
+                        suffix = os.path.splitext(
+                            file_name)[1] if "." in file_name else ""
+
+                        # Create a temp file and write decoded content
+                        temp_file = tempfile.NamedTemporaryFile(
+                            delete=False, suffix=suffix)
+                        temp_file.write(base64.b64decode(content_string))
+                        temp_file.close()
+
+                        # Add to cleanup list and attachments list
+                        temp_files.append(temp_file.name)
+                        attachments.append(temp_file.name)
+                    except Exception as e:
+                        print(f"Error processing base64 file: {str(e)}")
+
+    return temp_files, attachments
+
+
 async def handle_websocket(uri: str, channel_id: int):
     """Connect to a FastAPI WebSocket and handle notifications."""
     while True:
@@ -98,12 +141,30 @@ async def handle_websocket(uri: str, channel_id: int):
                             f"- Urls: https://nauqh.dev"
                         )
 
-                        await plugin.bot.rest.create_message(
-                            channel_id,
-                            message,
-                            components=view
-                        )
-                        plugin.d.miru.start_view(view)
+                        # Process attachments from base64 files in answers
+                        temp_files = []
+                        attachments = []
+
+                        if "answers" in content:
+                            temp_files, file_attachments = await process_base64_files(content["answers"])
+                            attachments.extend(file_attachments)
+
+                        try:
+                            await plugin.bot.rest.create_message(
+                                channel_id,
+                                message,
+                                components=view,
+                                attachments=attachments if attachments else None
+                            )
+                            plugin.d.miru.start_view(view)
+                        finally:
+                            # Clean up temp files
+                            for file_path in temp_files:
+                                try:
+                                    os.unlink(file_path)
+                                except Exception as e:
+                                    print(
+                                        f"Error deleting temp file: {str(e)}")
 
                     elif data["type"] == "help_request":
                         content = data["content"]
