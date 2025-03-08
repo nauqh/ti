@@ -159,31 +159,35 @@ async def handle_websocket(uri: str, channel_id: int):
                             temp_files, file_attachments = await process_base64_files(content["answers"])
                             attachments.extend(file_attachments)
 
-                        # If we have attachments, create a thread and post them there
-                        if attachments:
-                            try:
-                                # Create a thread from the message
-                                thread = await plugin.bot.rest.create_thread(
-                                    channel_id,
-                                    hikari.ChannelType.GUILD_PUBLIC_THREAD,
-                                    f"{content['exam_name']} - {content['email']}",
-                                )
+                        try:
+                            # Create a thread from the message
+                            thread = await plugin.bot.rest.create_thread(
+                                channel_id,
+                                hikari.ChannelType.GUILD_PUBLIC_THREAD,
+                                f"{content['exam_name']} - {content['email']}",
+                            )
 
-                                # Send attachments in the thread
-                                await plugin.bot.rest.create_message(
-                                    thread.id,
-                                    "Submitted files:",
-                                    attachments=attachments
-                                )
-                                await thread.send(f"```{content['summary']}```")
-                            finally:
-                                # Clean up temp files
-                                for file_path in temp_files:
-                                    try:
-                                        os.unlink(file_path)
-                                    except Exception as e:
-                                        print(
-                                            f"Error deleting temp file: {str(e)}")
+                            if attachments:
+                                await thread.send("Submitted files:", attachments=attachments)
+                            
+                            await thread.send(f"```{content['summary']}```")
+
+                            answers = (
+                                f"LEARNER SUBMISSION - {content['email']}\n" +
+                                '\n'.join(f"{i+1}: {ans}" for i,
+                                        ans in enumerate([question['answer'] for question in content['answers']]))
+                            )
+                            exam_type = 'sql' if content['exam_name'].startswith('M1') else 'python'
+                            await thread.send(f"```{exam_type}\n{answers[:answers.find('13:')]}\n```")
+                            await thread.send(f"```{exam_type}\n{answers[answers.find('13:'):]}\n```")
+                        finally:
+                            # Clean up temp files
+                            for file_path in temp_files:
+                                try:
+                                    os.unlink(file_path)
+                                except Exception as e:
+                                    print(
+                                        f"Error deleting temp file: {str(e)}")
 
                     elif data["type"] == "help_request":
                         content = data["content"]
