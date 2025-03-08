@@ -179,7 +179,7 @@ async def handle_websocket(uri: str, channel_id: int):
                             if attachments:
                                 await thread.send("**Submitted files:**", attachments=attachments)
 
-                            await thread.send(f"```{content['summary']}```")
+                            await thread.send(f"**Summary:**\n```{content['summary']}```")
                         finally:
                             # Clean up temp files
                             for file_path in temp_files:
