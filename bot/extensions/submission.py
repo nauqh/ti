@@ -111,7 +111,7 @@ async def process_base64_files(answers):
 
                         # Create temp file with appropriate extension
                         temp_file = tempfile.NamedTemporaryFile(
-                            delete=False, suffix=suffix, prefix=f"Q{i}_{base_name}_")
+                            delete=False, suffix=suffix, prefix=f"Q{i}-{base_name}-")
                         temp_file.write(base64.b64decode(content_string))
                         temp_file.close()
 
