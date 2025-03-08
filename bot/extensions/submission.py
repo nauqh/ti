@@ -167,19 +167,19 @@ async def handle_websocket(uri: str, channel_id: int):
                                 f"{content['exam_name']} - {content['email']}",
                             )
 
-                            if attachments:
-                                await thread.send("Submitted files:", attachments=attachments)
-                            
-                            await thread.send(f"```{content['summary']}```")
-
                             answers = (
                                 f"LEARNER SUBMISSION - {content['email']}\n" +
                                 '\n'.join(f"{i+1}: {ans}" for i,
                                         ans in enumerate([question['answer'] for question in content['answers']]))
                             )
                             exam_type = 'sql' if content['exam_name'].startswith('M1') else 'python'
-                            await thread.send(f"```{exam_type}\n{answers[:answers.find('13:')]}\n```")
+                            await thread.send(f"**Learner submission**\n```{exam_type}\n{answers[:answers.find('13:')]}\n```")
                             await thread.send(f"```{exam_type}\n{answers[answers.find('13:'):]}\n```")
+
+                            if attachments:
+                                await thread.send("**Submitted files:**", attachments=attachments)
+
+                            await thread.send(f"```{content['summary']}```")
                         finally:
                             # Clean up temp files
                             for file_path in temp_files:
