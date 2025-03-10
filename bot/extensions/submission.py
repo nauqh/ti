@@ -58,7 +58,9 @@ class SubmissionView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def grade_command(ctx: lightbulb.Context) -> None:
     # Check if the command is being used in a DM
-    if ctx.get_channel().type != hikari.ChannelType.DM:
+    channel_id = ctx.get_channel()
+    channel = await ctx.app.rest.fetch_channel(channel_id)
+    if channel.type != hikari.ChannelType.DM:
         await ctx.respond("This command can only be used in DMs.", flags=hikari.MessageFlag.EPHEMERAL)
         return
 
@@ -71,8 +73,7 @@ async def grade_command(ctx: lightbulb.Context) -> None:
         return
 
     # Get the last message from bot to extract exam name and email
-    channel = ctx.get_channel()
-    messages = await plugin.bot.rest.fetch_messages(channel.id, limit=20)
+    messages = await plugin.bot.rest.fetch_messages(channel_id, limit=20)
 
     # Find the most recent message about a grading assignment
     exam_name = None
