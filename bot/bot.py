@@ -9,7 +9,7 @@ load_dotenv()
 app = lightbulb.BotApp(
     os.getenv("TOKEN"),
     intents=hikari.Intents.ALL,
-    default_enabled_guilds=[int(os.getenv("GUILD_ID"))],
+    default_enabled_guilds=[int(os.getenv("GUILD_ID")), 947030406446854186, 912307061310783538, 1233260164233297940],
     help_slash_command=True,
     banner=None,
 )
