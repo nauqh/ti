@@ -13,8 +13,10 @@ load_dotenv()
 
 plugin = lightbulb.Plugin("Submissions", include_datastore=True)
 
+
 def load(bot: lightbulb.BotApp) -> None:
     bot.add_plugin(plugin)
+
 
 class SubmissionView(miru.View):
     def __init__(self, content: dict) -> None:
@@ -56,31 +58,31 @@ class SubmissionView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def grade_command(ctx: lightbulb.Context) -> None:
     # Check if the command is being used in a DM
-    if not isinstance(ctx.get_channel(), hikari.DMChannel):
+    if ctx.get_channel().type != hikari.ChannelType.DM:
         await ctx.respond("This command can only be used in DMs.", flags=hikari.MessageFlag.EPHEMERAL)
         return
-    
+
     # Get the command options
     score = ctx.options.score
-    
+
     # Score validation (additional safeguard)
     if not 0 <= score <= 100:
         await ctx.respond("Score must be between 0 and 100.", flags=hikari.MessageFlag.EPHEMERAL)
         return
-    
+
     # Get the last message from bot to extract exam name and email
     channel = ctx.get_channel()
     messages = await plugin.bot.rest.fetch_messages(channel.id, limit=20)
-    
+
     # Find the most recent message about a grading assignment
     exam_name = None
     email = None
-    
+
     for message in messages:
         # Skip messages not from the bot
         if message.author.id != plugin.bot.get_me().id:
             continue
-            
+
         # Check if message has the expected format from the bot
         content = message.content
         if "Grading assignment" in content:
@@ -88,16 +90,16 @@ async def grade_command(ctx: lightbulb.Context) -> None:
             import re
             exam_match = re.search(r"- Exam: (.+)", content)
             email_match = re.search(r"- Email: (.+)", content)
-            
+
             if exam_match and email_match:
                 exam_name = exam_match.group(1).strip()
                 email = email_match.group(1).strip()
                 break
-    
+
     if not exam_name or not email:
         await ctx.respond("Could not find exam details in recent messages. Please make sure you have received a grading assignment message.", flags=hikari.MessageFlag.EPHEMERAL)
         return
-    
+
     # Send confirmation message
     await ctx.respond(
         f"✅ Exam graded successfully!\n"
@@ -105,7 +107,7 @@ async def grade_command(ctx: lightbulb.Context) -> None:
         f"- Email: **{email}**\n"
         f"- Score: **{score}/100**"
     )
-    
+
     # You might want to add code here to store the grade in a database
     # or send it to your backend service
     # For example, you could create a websocket call to your backend
@@ -168,7 +170,7 @@ async def process_base64_files(answers):
                         file_name = file_info.get("name", "file")
                         suffix = os.path.splitext(
                             file_name)[1] if "." in file_name else ""
-                        
+
                         # Remove extension from the filename
                         base_name = os.path.splitext(file_name)[0]
 
@@ -233,9 +235,10 @@ async def handle_websocket(uri: str, channel_id: int):
                             answers = (
                                 f"LEARNER SUBMISSION - {content['email']}\n" +
                                 '\n'.join(f"{i+1}: {ans}" for i,
-                                        ans in enumerate([question['answer'] for question in content['answers']]))
+                                          ans in enumerate([question['answer'] for question in content['answers']]))
                             )
-                            exam_type = 'sql' if content['exam_name'].startswith('M1') else 'python'
+                            exam_type = 'sql' if content['exam_name'].startswith(
+                                'M1') else 'python'
                             await thread.send(f"**Learner submission**\n```{exam_type}\n{answers[:answers.find('13:')]}\n```")
                             await thread.send(f"```{exam_type}\n{answers[answers.find('13:'):]}\n```")
 
