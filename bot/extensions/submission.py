@@ -13,6 +13,8 @@ load_dotenv()
 
 plugin = lightbulb.Plugin("Submissions", include_datastore=True)
 
+def load(bot: lightbulb.BotApp) -> None:
+    bot.add_plugin(plugin)
 
 class SubmissionView(miru.View):
     def __init__(self, content: dict) -> None:
@@ -286,5 +288,4 @@ async def on_started(event: hikari.StartedEvent) -> None:
     await start_websocket_clients()
 
 
-def load(bot: lightbulb.BotApp) -> None:
-    bot.add_plugin(plugin)
+
