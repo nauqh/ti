@@ -58,7 +58,7 @@ class SubmissionView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def grade_command(ctx: lightbulb.Context) -> None:
     # Check if the command is being used in a DM
-    if not ctx.get_channel().type == hikari.ChannelType.DM:
+    if not isinstance(ctx.get_channel(), hikari.DMChannel):
         await ctx.respond("This command can only be used in DMs.", flags=hikari.MessageFlag.EPHEMERAL)
         return
     
