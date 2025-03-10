@@ -52,8 +52,6 @@ class SubmissionView(miru.View):
 # Command for grading exams (DM only)
 @plugin.command
 @lightbulb.option("score", "Score for the exam (0-100)", type=int, min_value=0, max_value=100)
-@lightbulb.option("email", "Student's email address", type=str)
-@lightbulb.option("exam_name", "Name of the exam", type=str)
 @lightbulb.command("grade", "Grade an exam submission (DM only)", guilds=[])
 @lightbulb.implements(lightbulb.SlashCommand)
 async def grade_command(ctx: lightbulb.Context) -> None:
@@ -64,12 +62,40 @@ async def grade_command(ctx: lightbulb.Context) -> None:
     
     # Get the command options
     score = ctx.options.score
-    email = ctx.options.email
-    exam_name = ctx.options.exam_name
     
     # Score validation (additional safeguard)
     if not 0 <= score <= 100:
         await ctx.respond("Score must be between 0 and 100.", flags=hikari.MessageFlag.EPHEMERAL)
+        return
+    
+    # Get the last message from bot to extract exam name and email
+    channel = ctx.get_channel()
+    messages = await plugin.bot.rest.fetch_messages(channel.id, limit=20)
+    
+    # Find the most recent message about a grading assignment
+    exam_name = None
+    email = None
+    
+    for message in messages:
+        # Skip messages not from the bot
+        if message.author.id != plugin.bot.get_me().id:
+            continue
+            
+        # Check if message has the expected format from the bot
+        content = message.content
+        if "Grading assignment" in content:
+            # Extract exam name and email using regex
+            import re
+            exam_match = re.search(r"- Exam: (.+)", content)
+            email_match = re.search(r"- Email: (.+)", content)
+            
+            if exam_match and email_match:
+                exam_name = exam_match.group(1).strip()
+                email = email_match.group(1).strip()
+                break
+    
+    if not exam_name or not email:
+        await ctx.respond("Could not find exam details in recent messages. Please make sure you have received a grading assignment message.", flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     # Send confirmation message
