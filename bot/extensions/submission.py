@@ -23,10 +23,9 @@ class SubmissionView(miru.View):
     async def accept_button(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         try:
             await ctx.author.send(
-                f"@everyone\n"
+                f"Grading assignment\n"
                 f"- Exam: {self.content['exam_name']}\n"
                 f"- Email: {self.content['email']}\n"
-                f"- Urls: https://nauqh.dev"
             )
 
             # Remove the button and update message with text
@@ -46,6 +45,42 @@ class SubmissionView(miru.View):
                 "Could not send DM. Please check your privacy settings.",
                 flags=hikari.MessageFlag.EPHEMERAL
             )
+
+
+# Command for grading exams (DM only)
+@plugin.command
+@lightbulb.option("score", "Score for the exam (0-100)", type=int, min_value=0, max_value=100)
+@lightbulb.option("email", "Student's email address", type=str)
+@lightbulb.option("exam_name", "Name of the exam", type=str)
+@lightbulb.command("grade", "Grade an exam submission (DM only)")
+@lightbulb.implements(lightbulb.SlashCommand)
+async def grade_command(ctx: lightbulb.Context) -> None:
+    # Check if the command is being used in a DM
+    if not ctx.get_channel().type == hikari.ChannelType.DM:
+        await ctx.respond("This command can only be used in DMs.", flags=hikari.MessageFlag.EPHEMERAL)
+        return
+    
+    # Get the command options
+    score = ctx.options.score
+    email = ctx.options.email
+    exam_name = ctx.options.exam_name
+    
+    # Score validation (additional safeguard)
+    if not 0 <= score <= 100:
+        await ctx.respond("Score must be between 0 and 100.", flags=hikari.MessageFlag.EPHEMERAL)
+        return
+    
+    # Send confirmation message
+    await ctx.respond(
+        f"✅ Exam graded successfully!\n"
+        f"- Exam: **{exam_name}**\n"
+        f"- Email: **{email}**\n"
+        f"- Score: **{score}/100**"
+    )
+    
+    # You might want to add code here to store the grade in a database
+    # or send it to your backend service
+    # For example, you could create a websocket call to your backend
 
 
 class HelpRequestView(miru.View):
