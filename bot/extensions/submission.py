@@ -54,7 +54,7 @@ class SubmissionView(miru.View):
 @lightbulb.option("score", "Score for the exam (0-100)", type=int, min_value=0, max_value=100)
 @lightbulb.option("email", "Student's email address", type=str)
 @lightbulb.option("exam_name", "Name of the exam", type=str)
-@lightbulb.command("grade", "Grade an exam submission (DM only)")
+@lightbulb.command("grade", "Grade an exam submission (DM only)", guilds=[])
 @lightbulb.implements(lightbulb.SlashCommand)
 async def grade_command(ctx: lightbulb.Context) -> None:
     # Check if the command is being used in a DM
@@ -286,6 +286,3 @@ async def start_websocket_clients():
 async def on_started(event: hikari.StartedEvent) -> None:
     plugin.d.miru = miru.Client(plugin.bot)
     await start_websocket_clients()
-
-
-
