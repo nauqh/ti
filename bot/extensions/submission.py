@@ -73,7 +73,7 @@ async def grade_command(ctx: lightbulb.Context) -> None:
         return
 
     # Get the last message from bot to extract exam name and email
-    messages = await plugin.bot.rest.fetch_messages(channel_id, limit=20)
+    messages = await plugin.bot.rest.fetch_messages(channel_id)
 
     # Find the most recent message about a grading assignment
     exam_name = None
