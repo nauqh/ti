@@ -65,8 +65,6 @@ async def grade_command(ctx: lightbulb.Context) -> None:
 
     # Get the command options
     score = ctx.options.score
-
-    # Score validation (additional safeguard)
     if not 0 <= score <= 100:
         await ctx.respond("Score must be between 0 and 100.", flags=hikari.MessageFlag.EPHEMERAL)
         return
@@ -88,7 +86,8 @@ async def grade_command(ctx: lightbulb.Context) -> None:
         if "✅ Exam graded successfully" in message.content and "Score:" in message.content:
             # Extract the exam name using regex to check if it's the same assignment
             import re
-            graded_exam_match = re.search(r"- Exam: \*\*(.+?)\*\*", message.content)
+            graded_exam_match = re.search(
+                r"- Exam: \*\*(.+?)\*\*", message.content)
             if graded_exam_match:
                 # Store that we've found a graded message
                 already_graded = True
@@ -107,13 +106,13 @@ async def grade_command(ctx: lightbulb.Context) -> None:
                 email = email_match.group(1).strip()
                 break
 
-    if not exam_name or not email:
-        await ctx.respond("Could not find exam details in recent messages. Please make sure you have received a grading assignment message.", flags=hikari.MessageFlag.EPHEMERAL)
-        return
-
     # Check if this assignment has already been graded
     if already_graded:
         await ctx.respond("This exam has already been graded. You can only grade each assigned exam once.", flags=hikari.MessageFlag.EPHEMERAL)
+        return
+
+    if not exam_name or not email:
+        await ctx.respond("Could not find exam details in recent messages. Please make sure you have received a grading assignment message.", flags=hikari.MessageFlag.EPHEMERAL)
         return
 
     # Send confirmation message
