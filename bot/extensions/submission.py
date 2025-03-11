@@ -51,7 +51,6 @@ class SubmissionView(miru.View):
             )
 
 
-# Command for grading exams (DM only)
 @plugin.command
 @lightbulb.option("score", "Score for the exam (0-100)", type=int, min_value=0, max_value=100)
 @lightbulb.command("grade", "Grade an exam submission (DM only)", guilds=[])
@@ -78,11 +77,22 @@ async def grade_command(ctx: lightbulb.Context) -> None:
     # Find the most recent message about a grading assignment
     exam_name = None
     email = None
+    already_graded = False
 
     for message in messages:
         # Skip messages not from the bot
         if message.author.id != plugin.bot.get_me().id:
             continue
+
+        # Check if this exam has already been graded
+        if "✅ Exam graded successfully" in message.content and "Score:" in message.content:
+            # Extract the exam name using regex to check if it's the same assignment
+            import re
+            graded_exam_match = re.search(r"- Exam: \*\*(.+?)\*\*", message.content)
+            if graded_exam_match:
+                # Store that we've found a graded message
+                already_graded = True
+                break
 
         # Check if message has the expected format from the bot
         content = message.content
@@ -99,6 +109,11 @@ async def grade_command(ctx: lightbulb.Context) -> None:
 
     if not exam_name or not email:
         await ctx.respond("Could not find exam details in recent messages. Please make sure you have received a grading assignment message.", flags=hikari.MessageFlag.EPHEMERAL)
+        return
+
+    # Check if this assignment has already been graded
+    if already_graded:
+        await ctx.respond("This exam has already been graded. You can only grade each assigned exam once.", flags=hikari.MessageFlag.EPHEMERAL)
         return
 
     # Send confirmation message
