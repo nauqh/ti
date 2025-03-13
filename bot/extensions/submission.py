@@ -27,9 +27,9 @@ class SubmissionView(miru.View):
     async def accept_button(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         try:
             await ctx.author.send(
-                f"Grading assignment\n"
-                f"- Exam: {self.content['exam_name']}\n"
-                f"- Email: {self.content['email']}\n"
+                f"🔍 Grading assignment\n"
+                f"- Exam: **{self.content['exam_name']}**\n"
+                f"- Email: **{self.content['email']}**\n"
             )
 
             # Remove the button and update message with text
