@@ -279,7 +279,8 @@ async def handle_websocket(uri: str, channel_id: int):
                                 f"- Exam: {content['exam_name']}\n"
                                 f"- Email: {content['email']}\n"
                                 f"View submission at https://csassessment.it.com/marking/{content['submission_id']}"
-                            )
+                            ),
+                            flags=hikari.MessageFlag.SUPPRESS_EMBEDS
                         )
                     elif data["type"] == "help_request":
                         content = data["content"]
