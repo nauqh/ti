@@ -276,7 +276,7 @@ async def handle_websocket(uri: str, channel_id: int):
                             1237424754739253279,
                             (
                                 f"@everyone New submission added\n"
-                                f"- Exam: {content['exam']}\n"
+                                f"- Exam: {content['exam_name']}\n"
                                 f"- Email: {content['email']}\n"
                                 f"View submission at https://csassessment.it.com/marking/{content['submission_id']}"
                             )
