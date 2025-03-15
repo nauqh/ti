@@ -271,6 +271,16 @@ async def handle_websocket(uri: str, channel_id: int):
                                     print(
                                         f"Error deleting temp file: {str(e)}")
 
+                        # NOTE: TEST: Send a message to DS server
+                        await plugin.bot.rest.create_message(
+                            1237424754739253279,
+                            (
+                                f"@everyone New submission added\n"
+                                f"- Exam: {content['exam']}\n"
+                                f"- Email: {content['email']}\n"
+                                f"View submission at https://csassessment.it.com/marking/{content['submission_id']}"
+                            )
+                        )
                     elif data["type"] == "help_request":
                         content = data["content"]
                         view = HelpRequestView(content)
