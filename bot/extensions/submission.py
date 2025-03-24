@@ -274,7 +274,7 @@ async def handle_websocket(uri: str, channel_id: int):
                         await plugin.bot.rest.create_message(
                             1237424754739253279,
                             (
-                                f"New submission from `content['email']`\n"
+                                f"New submission from `{content['email']}`\n"
                                 f"- Exam: {content['exam_name']}\n"
                                 f"- Email: {content['email']}\n"
                                 f"View submission at https://csassessment.it.com/marking/{content['submission_id']}"
