@@ -20,7 +20,7 @@ def get_ta_role_for_forum(forum_id: int) -> str:
     QUESTION_CENTERS = {
         "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773, "staff_channel": 1237424754739253279},
         "FSW": {"forum_id": 1077118780523679787, "ta_id": 912553106124972083},
-        "CS50": {"forum_id": 1343930405702865037, "ta_id": 1233260164233297942},
+        "CS50": {"forum_id": 1318582941667819683, "ta_id": 1233260164233297942},
         # "MOENASH": {"forum_id": 1195747557335375907, "ta_id": 947046253609508945},
     }
     for center in QUESTION_CENTERS.values():
