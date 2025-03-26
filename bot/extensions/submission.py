@@ -215,61 +215,61 @@ async def handle_websocket(uri: str, channel_id: int):
 
                     if data["type"] == "submission":
                         content = data["content"]
-                        view = SubmissionView(content)
+                        # view = SubmissionView(content)
 
-                        message_content = (
-                            f"@everyone\n"
-                            f"- Exam: {content['exam_name']}\n"
-                            f"- Email: {content['email']}\n"
-                        )
+                        # message_content = (
+                        #     f"@everyone\n"
+                        #     f"- Exam: {content['exam_name']}\n"
+                        #     f"- Email: {content['email']}\n"
+                        # )
 
-                        # First send the message without attachments
-                        await plugin.bot.rest.create_message(
-                            channel_id,
-                            message_content,
-                            components=view
-                        )
-                        plugin.d.miru.start_view(view)
+                        # # First send the message without attachments
+                        # await plugin.bot.rest.create_message(
+                        #     channel_id,
+                        #     message_content,
+                        #     components=view
+                        # )
+                        # plugin.d.miru.start_view(view)
 
-                        # Process attachments from base64 files in answers
-                        temp_files = []
-                        attachments = []
+                        # # Process attachments from base64 files in answers
+                        # temp_files = []
+                        # attachments = []
 
-                        if "answers" in content:
-                            temp_files, file_attachments = await process_base64_files(content["answers"])
-                            attachments.extend(file_attachments)
+                        # if "answers" in content:
+                        #     temp_files, file_attachments = await process_base64_files(content["answers"])
+                        #     attachments.extend(file_attachments)
 
-                        try:
-                            # Create a thread from the message
-                            thread = await plugin.bot.rest.create_thread(
-                                channel_id,
-                                hikari.ChannelType.GUILD_PUBLIC_THREAD,
-                                f"{content['exam_name']} - {content['email']}",
-                            )
+                        # try:
+                        #     # Create a thread from the message
+                        #     thread = await plugin.bot.rest.create_thread(
+                        #         channel_id,
+                        #         hikari.ChannelType.GUILD_PUBLIC_THREAD,
+                        #         f"{content['exam_name']} - {content['email']}",
+                        #     )
 
-                            # NOTE: Send learner submission
-                            # answers = (
-                            #     f"LEARNER SUBMISSION - {content['email']}\n" +
-                            #     '\n'.join(f"{i+1}: {ans}" for i,
-                            #               ans in enumerate([question['answer'] for question in content['answers']]))
-                            # )
-                            # exam_type = 'sql' if content['exam_name'].startswith(
-                            #     'M1') else 'python'
-                            # await thread.send(f"**Learner submission**\n```{exam_type}\n{answers[:answers.find('13:')]}\n```")
-                            # await thread.send(f"```{exam_type}\n{answers[answers.find('13:'):]}\n```")
+                        # NOTE: Send learner submission
+                        # answers = (
+                        #     f"LEARNER SUBMISSION - {content['email']}\n" +
+                        #     '\n'.join(f"{i+1}: {ans}" for i,
+                        #               ans in enumerate([question['answer'] for question in content['answers']]))
+                        # )
+                        # exam_type = 'sql' if content['exam_name'].startswith(
+                        #     'M1') else 'python'
+                        # await thread.send(f"**Learner submission**\n```{exam_type}\n{answers[:answers.find('13:')]}\n```")
+                        # await thread.send(f"```{exam_type}\n{answers[answers.find('13:'):]}\n```")
 
-                            if attachments:
-                                await thread.send("**Submitted files:**", attachments=attachments)
+                        #     if attachments:
+                        #         await thread.send("**Submitted files:**", attachments=attachments)
 
-                            await thread.send(f"**Summary:**\n```{content['summary']}```")
-                        finally:
-                            # Clean up temp files
-                            for file_path in temp_files:
-                                try:
-                                    os.unlink(file_path)
-                                except Exception as e:
-                                    print(
-                                        f"Error deleting temp file: {str(e)}")
+                        #     await thread.send(f"**Summary:**\n```{content['summary']}```")
+                        # finally:
+                        #     # Clean up temp files
+                        #     for file_path in temp_files:
+                        #         try:
+                        #             os.unlink(file_path)
+                        #         except Exception as e:
+                        #             print(
+                        #                 f"Error deleting temp file: {str(e)}")
 
                         await plugin.bot.rest.create_message(
                             1237424754739253279,
