@@ -325,7 +325,7 @@ async def handle_websocket(uri: str, channel_id: int):
 async def start_websocket_clients():
     """Start multiple WebSocket client connections."""
     # First WebSocket connection
-    uri1 = "wss://cspyclient.up.railway.app/ws"
+    uri1 = "wss://cseassessment.up.railway.app/ws"
     channel_id1 = 947032992063303730
 
     # Second WebSocket connection
