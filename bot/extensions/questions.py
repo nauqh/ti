@@ -8,6 +8,7 @@ QUESTION_CENTERS = {
     "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773, "staff_channel": 1237424754739253279},
     "FSW": {"forum_id": 1077118780523679787, "ta_id": 912553106124972083},
     "CS50": {"forum_id": 1318582941667819683, "ta_id": 1233260164233297942},
+    "SAI": {"forum_id": 1266296401516564551, "ta_id": 1266313334261809184},
     # "MOENASH": {"forum_id": 1344962762887004160, "ta_id": 947046253609508945},
 }
 
@@ -89,6 +90,9 @@ async def on_thread_create(event: hikari.GuildThreadCreateEvent) -> None:
 
             if tag_name == "Code review":
                 messages[0].content = "Please review the following code:\n\n" + \
+                    messages[0].content
+            if tag_name in ["C#", "unity"]:
+                messages[0].content = "This question is in the game course:\n\n" + \
                     messages[0].content
 
             await handle_post_creation(post, messages[0])
