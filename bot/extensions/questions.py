@@ -3,6 +3,9 @@ import lightbulb
 from ..agent import Assistant
 from loguru import logger
 import os
+import asyncio
+from bot.helpers import today, yesterday
+
 
 QUESTION_CENTERS = {
     "DS": {"forum_id": 1081063200377806899, "ta_id": 1194665960376901773, "staff_channel": 1237424754739253279},
@@ -24,6 +27,13 @@ async def on_starting(event: hikari.StartingEvent) -> None:
     bot = Assistant(
         [f"docs/{filename}" for filename in os.listdir('docs')])
     plugin.app.d.bot = bot
+
+
+@plugin.listener(hikari.StartedEvent)
+async def on_started(event: hikari.StartedEvent) -> None:
+    # Found question in SAIGAME, notify in FSW
+    asyncio.create_task(check_threads(
+        1266295106139328522, 1266296401516564551, 1239620442835259424))
 
 
 async def handle_post_creation(post: hikari.GuildThreadChannel, message: hikari.Message) -> None:
@@ -175,3 +185,48 @@ async def on_reaction_add(event: hikari.ReactionAddEvent) -> None:
             1237424754739253279,  # DS staff-internal
             f"`{user.display_name}` rated the response with a score of {score} in thread {thread_link}"
         )
+
+
+async def check_threads(
+    guild: int,
+    forum_channel: int,
+    staff_channel: int
+):
+    CHECK_INTERVAL = 2000
+    while True:
+        await asyncio.sleep(CHECK_INTERVAL)
+        threads = [
+            thread for thread in await plugin.app.rest.fetch_active_threads(guild)
+            if isinstance(thread, hikari.GuildThreadChannel) and
+            thread.parent_id == forum_channel and
+            thread.created_at.date() in [today(), yesterday()]
+        ]
+        for thread in threads:
+            messages: list[hikari.Message] = await thread.fetch_history()
+            members = {message.author.id for message in messages}
+            if len(members) <= 1:
+                author = await plugin.app.rest.fetch_member(guild, thread.owner_id)
+                attachments = [att.url for att in messages[0].attachments]
+
+                embed = hikari.Embed(
+                    title=thread.name,
+                    description=messages[0].content,
+                    color="#118ab2",
+                    url=f"https://discord.com/channels/{thread.guild_id}/{thread.id}"
+                ).set_footer(
+                    text=f"Posted by {author.global_name}",
+                    icon=author.avatar_url
+                )
+
+                if attachments:
+                    embed.set_image(attachments[0])
+
+                # Notify TA Quang and Hien
+                await plugin.app.rest.create_message(
+                    staff_channel,
+                    content=(
+                        f"<@{507770826733518859}> "
+                        f"<@{581363593468182528}> "
+                        "this thread in SAIGAME remains unresolved for more than 15min"),
+                    embed=embed
+                )
