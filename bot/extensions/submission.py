@@ -249,18 +249,6 @@ async def handle_websocket(uri: str, channel_id: int):
                         )
                         plugin.d.miru.start_view(view)
 
-                    elif data["type"] == "new_submission":
-                        content = data["content"]
-
-                        await plugin.bot.rest.create_message(
-                            1237424754739253279,
-                            (
-                                f"@everyone New submission added\n"
-                                f"- Exam: {content['exam']}\n"
-                                f"- Email: {content['email']}\n"
-                            )
-                        )
-
         except websockets.ConnectionClosed:
             await asyncio.sleep(5)
 
