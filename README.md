@@ -6,7 +6,9 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991.svg?style=for-the-badge&logo=OpenAI&logoColor=white)
 
 ## About the project
-T.i is an AI-powered teaching assistant for Coderschool's Discord forums. It combines OpenAI's GPT models with Discord's interactive features to provide intelligent, contextual assistance to learners.
+T.i is an AI-powered teaching assistant for Coderschool's Discord forums. It's a Retrieval-Augmented Generation (RAG) system that combines OpenAI's GPT models with a ChromaDB vector store to give learners grounded, course-accurate answers — not just general programming knowledge.
+
+Supports 100+ concurrent learners across Discord threads, with 100% positive feedback from students.
 
 ## Key Features
 
@@ -129,7 +131,37 @@ chatbot/
 - Code analysis tools
 - Documentation search
 
-Workflow
+## Architecture
+
+RAG pipeline, split into retrieval (finding the right course content) and augmented generation (using it to answer correctly and stay grounded):
+
+```mermaid
+graph LR
+    subgraph Ingestion["Ingestion (offline, one-time per update)"]
+        Docs[("Course materials\nAssignment specs\nPast Q&A")] --> Chunk(Chunk by\nsection/concept)
+        Chunk --> Embed1(Embed)
+        Embed1 --> DB[(ChromaDB\nVector Store)]
+    end
+
+    subgraph Runtime["Runtime (per student question)"]
+        User([Student asks\nquestion in Discord]) --> Bot(Discord.py bot)
+        Bot --> Embed2(Embed query)
+        Embed2 --> Search(Similarity search\ntop-k chunks)
+        DB --> Search
+        Search --> Context(Inject retrieved\nchunks as context)
+        Context --> LLM(OpenAI GPT\nGenerate answer)
+        LLM --> Grounded{Grounded in\nretrieved context?}
+        Grounded -->|Yes| Answer([Answer + citations\nposted to thread])
+        Grounded -->|No / not enough info| Fallback([Not in course material\nescalate to TA])
+    end
+```
+
+**Why this shape:** course content changes every cohort, so updating the vector store is cheap compared to retraining a model. Chunking follows the course's own structure (by section/concept) rather than fixed windows, so retrieved chunks stay coherent. Generation is instructed to answer only from retrieved chunks and fall back to "I don't have that in the course material" instead of hallucinating.
+
+## Workflow
+
+Runtime detail — how a message becomes a response, including tool calls (GitHub, YouTube, document search):
+
 ```mermaid
 graph TD
     A((On new Message)) --> B(Check if Thread Exists)
