@@ -189,6 +189,29 @@ graph TD
     Q --> S(((End)))
 ```
 
+## Design Decisions
+
+Talking points behind the architecture, for anyone asking "why this way and not another":
+
+**Why RAG over fine-tuning:** course content changes every cohort. Updating ChromaDB with new material is cheap; retraining a model per cohort isn't. RAG also keeps answers auditable, since you can point at exactly which chunk produced an answer.
+
+**Chunking: by section/concept, not fixed token windows:** course material has real structure (headers, sections, concepts), so document-structure-aware chunking keeps each chunk semantically whole. Fixed-size chunking would risk slicing a concept in half and returning a half-explained answer.
+
+**Embedding model:** OpenAI's embedding API, for the same reason GPT is used for generation: one vendor, one integration surface, no separate self-hosted embedding infra to run for a bounded, course-sized corpus. The same model embeds both the corpus (ingestion time) and the incoming question (query time); they have to match, or similarity search silently degrades with no obvious error.
+
+**Why ChromaDB, not a managed vector DB (Pinecone/Weaviate):** the corpus is bounded (course docs, not web-scale), so a lightweight, self-hosted store is the better fit. Managed services add ops simplicity but also cost and complexity this scale doesn't need yet.
+
+**Grounding / hallucination control:** generation is instructed to answer only from retrieved chunks, and to say "not in the course material" (escalating to a TA) rather than fall back on the model's general knowledge. This matters because a technically-correct-but-generic answer can still be *wrong* for a course that teaches a specific library version or approach.
+
+**How this was evaluated:** human evaluation, via Discord reaction feedback (100% positive) and TA escalation as the fallback path, not a formal offline eval set. The honest next step would be a labeled Q&A eval set with retrieval hit-rate@k, plus an LLM-as-judge pass to catch ungrounded answers automatically; neither exists today.
+
+**What would break first at scale:** retrieval latency and Discord API rate limits under higher concurrency, before ChromaDB itself becomes the bottleneck.
+
+**Known gaps, worth naming proactively:**
+- *Prompt injection via retrieved content:* no explicit defense against a doc/chunk containing adversarial instructions; retrieved content is trusted as data, but this isn't hardened.
+- *"Lost in the middle":* with several chunks injected into one prompt, ordering isn't currently optimized (most-relevant-first/last), so a relevant chunk buried mid-context could get under-weighted.
+- *No hybrid/sparse retrieval:* pure dense (vector) search can blur exact terms (library names, specific error codes) that keyword/BM25 search would catch directly.
+
 ## Installation
 
 1. Clone and setup:
